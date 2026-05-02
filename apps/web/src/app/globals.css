@@ -66,3 +66,27 @@
     @apply bg-background text-foreground;
   }
 }
+
+body {
+  background: #0a0a0a;
+}
+
+.spotlight { z-index: 1; }
+.gnb { z-index: 50; }
+
+/* ================= SPOTLIGHT ================= */
+
+.spotlight {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+
+  background: radial-gradient(
+    650px circle at var(--mx, 50%) var(--my, 30%),
+    rgba(255, 106, 61, 0.06),
+    transparent 45%
+  );
+
+  transition: background 100ms linear;
+}
