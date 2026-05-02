@@ -39,3 +39,7 @@ yarn-error.log*
 
 # Claude Skill Memory
 MEMORY.md
+
+# env (모든 하위 포함)
+**/.env
+**/.env.local
