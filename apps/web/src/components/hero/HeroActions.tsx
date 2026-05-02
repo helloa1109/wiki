@@ -12,7 +12,7 @@ import { MagneticButton } from "@/components/ui/MagneticButton";
 export function HeroActions() {
   return (
     <div
-      className="inline-flex flex-wrap items-center gap-3 opacity-0 animate-fade-up max-md:flex-col max-md:items-stretch max-md:w-full max-md:max-w-[320px]"
+      className="inline-flex flex-wrap justify-center items-center gap-3 opacity-0 animate-fade-up max-md:flex-col max-md:items-center max-md:w-full max-md:max-w-[320px]"
       style={{ animationDelay: "1180ms" }}
     >
       <MagneticButton className="group max-md:w-full max-md:justify-center">

@@ -24,12 +24,12 @@ export function Hero() {
       <HeroBlobs />
 
       <div className="relative z-[2] mx-auto w-full max-w-[1280px]">
-        <div className="max-w-[880px]">
+        <div className="mx-auto max-w-[880px] text-center">
           <HeroEyebrow />
           <HeroTitle />
 
           <p
-            className="mb-12 max-w-[540px] text-[clamp(15px,1.4vw,18px)] leading-[1.65] text-foreground-muted opacity-0 animate-fade-up"
+            className="mx-auto mb-12 max-w-[540px] text-[clamp(15px,1.4vw,18px)] leading-[1.65] text-foreground-muted opacity-0 animate-fade-up"
             style={{ animationDelay: "1000ms" }}
           >
             UI/UX 기획자가 남기는 작업 회고와 디자인 노트.
@@ -37,7 +37,9 @@ export function Hero() {
             오래 걸려 정리한 것들이 천천히 쌓이는 공간입니다.
           </p>
 
-          <HeroActions />
+          <div className="flex justify-center">
+            <HeroActions />
+          </div>
         </div>
       </div>
 

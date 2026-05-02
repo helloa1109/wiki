@@ -3,7 +3,7 @@ import "./globals.css";
 import { newsreader, jetbrainsMono } from "../lib/fonts";
 
 export const metadata: Metadata = {
-  title: "효깅 — 정돈된 노트, 정돈되는 사고",
+  title: "Team DBC",
   description:
     "UI/UX 기획자가 남기는 작업 회고와 디자인 노트. 오래 걸려 정리한 것들이 천천히 쌓이는 공간.",
 };
