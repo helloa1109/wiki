@@ -1,6 +1,7 @@
 import { GrainOverlay } from "@/components/effects/GrainOverlay";
 import { CursorSpotlight } from "@/components/effects/CursorSpotlight";
 import { GNB } from "@/components/layout/GNB";
+import { Hero } from "@/components/hero/Hero";
 ;
 
 /**
@@ -21,9 +22,9 @@ export default function Page() {
     <>
       <CursorSpotlight />
       <GNB />
-      {/* <main>
+      <main>
         <Hero />
-      </main> */}
+      </main>
       <GrainOverlay />
     </>
   );

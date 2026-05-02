@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type RefObject } from "react";
+import React, { useEffect, useRef, type RefObject } from "react";
 
 interface UseMagneticOptions {
   /** 끌어당기는 강도 (0-1, 기본 0.32) */
@@ -22,8 +22,8 @@ export function useMagnetic<T extends HTMLElement = HTMLButtonElement>({
   strength = 0.32,
   radius = 100,
   damping = 0.18,
-}: UseMagneticOptions = {}): RefObject<T | null> {
-  const ref = useRef<T>(null);
+}: UseMagneticOptions = {}): React.RefObject<T> {
+  const ref = useRef<T>(null) as React.RefObject<T>;
 
   useEffect(() => {
     const el = ref.current;

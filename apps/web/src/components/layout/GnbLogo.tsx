@@ -15,7 +15,7 @@ export function GnbLogo() {
       >
         <span className="absolute inset-1 rounded-[2px] bg-background" />
       </span>
-      효깅
+      DBC
     </Link>
   );
 }
