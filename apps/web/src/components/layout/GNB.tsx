@@ -5,6 +5,7 @@ import { useScrolled } from "@/lib/hooks/useScrolled";
 import { GnbLogo } from "@/components/layout/GnbLogo";
 import { GnbNav } from "./GnbNav";
 import { GnbAction } from "./GnbAction";
+import { GnbMobileMenu } from "./GnbMobileMenu";
 
 /**
  * Global Navigation Bar — 화면 상단 중앙 플로팅 글래스 필.
@@ -43,8 +44,18 @@ export function GNB() {
         )}
       >
         <GnbLogo />
-        <GnbNav />
-        <GnbAction />
+        {/* 데스크탑 네비 */}
+        <div className="hidden md:block">
+          <GnbNav />
+        </div>
+        {/* 데스크탑 액션 */}
+        <div className="hidden md:block">
+          <GnbAction />
+        </div>
+        {/* 모바일 햄버거 */}
+        <div className="md:hidden">
+          <GnbMobileMenu />
+        </div>
       </div>
     </header>
   );
