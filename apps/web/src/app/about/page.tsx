@@ -2,6 +2,7 @@ import { GNB } from '@/components/layout/GNB'
 import { GrainOverlay } from '@/components/effects/GrainOverlay'
 import { CursorSpotlight } from '@/components/effects/CursorSpotlight'
 import { FadeUp } from '@/components/about/FadeUp'
+import { SlideFromSides } from '@/components/about/SlideFromSides'
 import Link from 'next/link'
 
 export const metadata = {
@@ -118,6 +119,9 @@ export default function AboutPage() {
             </div>
           </div>
         </section>
+
+        {/* ── 슬라이드 작업물 ───────────────────────── */}
+        <SlideFromSides />
 
         {/* ── 구분선 ────────────────────────────────── */}
         <div className="mx-10 border-t border-white/[0.06] max-md:mx-6" />
