@@ -4,12 +4,11 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
-import { toInternalEmail } from '@/lib/auth'
 import { AuthCard } from './AuthCard'
 import { AuthInput } from './AuthInput'
 
 interface FieldErrors {
-  id?: string
+  email?: string
   nickname?: string
   password?: string
   passwordConfirm?: string
@@ -17,7 +16,7 @@ interface FieldErrors {
 
 export function SignupForm() {
   const [values, setValues] = useState({
-    id: '',
+    email: '',
     nickname: '',
     password: '',
     passwordConfirm: '',
@@ -35,13 +34,7 @@ export function SignupForm() {
   const validate = (): boolean => {
     const errors: FieldErrors = {}
 
-    if (!values.id) {
-      errors.id = '아이디를 입력해주세요.'
-    } else if (values.id.length < 3) {
-      errors.id = '아이디는 3자 이상이어야 합니다.'
-    } else if (!/^[a-zA-Z0-9_]+$/.test(values.id)) {
-      errors.id = '영문, 숫자, 밑줄(_)만 사용할 수 있습니다.'
-    }
+    if (!values.email) errors.email = '이메일을 입력해주세요.'
 
     if (!values.nickname) {
       errors.nickname = '닉네임을 입력해주세요.'
@@ -75,17 +68,17 @@ export function SignupForm() {
 
     const supabase = createClient()
     const { error } = await supabase.auth.signUp({
-      email: toInternalEmail(values.id),
+      email: values.email,
       password: values.password,
       options: {
-        data: { nickname: values.nickname, id: values.id },
+        data: { nickname: values.nickname },
       },
     })
 
     if (error) {
       setError(
         error.message.includes('already registered')
-          ? '이미 사용 중인 아이디입니다.'
+          ? '이미 사용 중인 이메일입니다.'
           : error.message,
       )
       setLoading(false)
@@ -105,7 +98,7 @@ export function SignupForm() {
           <div>
             <p className="text-[14px] text-foreground">가입이 완료됐어요</p>
             <p className="mt-1 text-[13px] text-foreground-muted">
-              아이디 <span className="text-foreground">{values.id}</span> 로 로그인할 수 있어요.
+              {values.email} 로 로그인할 수 있어요.
             </p>
           </div>
           <Link
@@ -127,13 +120,13 @@ export function SignupForm() {
     <AuthCard title="회원가입" description="관리자 페이지">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <AuthInput
-          label="아이디"
-          type="text"
-          value={values.id}
-          onChange={set('id')}
-          placeholder="영문, 숫자, 밑줄 3자 이상"
-          autoComplete="username"
-          error={fieldErrors.id}
+          label="이메일"
+          type="email"
+          value={values.email}
+          onChange={set('email')}
+          placeholder="example@gmail.com"
+          autoComplete="email"
+          error={fieldErrors.email}
         />
         <AuthInput
           label="닉네임"

@@ -5,13 +5,12 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
-import { toInternalEmail } from '@/lib/auth'
 import { AuthCard } from './AuthCard'
 import { AuthInput } from './AuthInput'
 
 export function LoginForm() {
   const router = useRouter()
-  const [id, setId] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -22,13 +21,10 @@ export function LoginForm() {
     setLoading(true)
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({
-      email: toInternalEmail(id),
-      password,
-    })
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      setError('아이디 또는 비밀번호가 올바르지 않습니다.')
+      setError('이메일 또는 비밀번호가 올바르지 않습니다.')
       setLoading(false)
       return
     }
@@ -41,13 +37,13 @@ export function LoginForm() {
     <AuthCard title="로그인" description="관리자 페이지">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <AuthInput
-          label="아이디"
-          type="text"
-          value={id}
-          onChange={(e) => setId(e.target.value)}
-          placeholder="아이디 입력"
+          label="이메일"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="example@gmail.com"
           required
-          autoComplete="username"
+          autoComplete="email"
         />
         <AuthInput
           label="비밀번호"
