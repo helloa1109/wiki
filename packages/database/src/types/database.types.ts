@@ -12,7 +12,29 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
-      // Tables will be generated here
+      profiles: {
+        Row: {
+          id: string
+          email: string | null
+          nickname: string | null
+          status: 'pending' | 'approved' | 'rejected'
+          created_at: string | null
+        }
+        Insert: {
+          id: string
+          email?: string | null
+          nickname?: string | null
+          status?: 'pending' | 'approved' | 'rejected'
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          email?: string | null
+          nickname?: string | null
+          status?: 'pending' | 'approved' | 'rejected'
+          created_at?: string | null
+        }
+      }
     }
     Views: {
       // Views will be generated here
