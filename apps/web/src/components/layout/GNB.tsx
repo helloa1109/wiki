@@ -1,62 +1,67 @@
 "use client";
 
+import { useState } from "react";
+import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useScrolled } from "@/lib/hooks/useScrolled";
 import { GnbLogo } from "@/components/layout/GnbLogo";
 import { GnbNav } from "./GnbNav";
-import { GnbAction } from "./GnbAction";
 import { GnbMobileMenu } from "./GnbMobileMenu";
+import { SearchModal } from "./SearchModal";
 
-/**
- * Global Navigation Bar — 화면 상단 중앙 플로팅 글래스 필.
- * 스크롤 32px 넘으면 살짝 위로 올라가며 0.96 압축.
- *
- * 구성:
- * - GnbLogo (왼쪽, Server)
- * - GnbNav (가운데, Client - 호버 인디케이터)
- * - GnbAction (오른쪽, Server - RSS)
- */
 export function GNB() {
   const scrolled = useScrolled(32);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   return (
-    <header
-      className={cn(
-        "fixed left-1/2 -translate-x-1/2 z-50",
-        "transition-[top] duration-[400ms] ease-standard",
-        scrolled ? "top-3" : "top-6"
-      )}
-    >
-      <div
+    <>
+      <header
         className={cn(
-          // 형태
-          "flex items-center gap-7 pl-[22px] pr-2 py-2 rounded-full",
-          // 글래스
-          "bg-surface/55 backdrop-blur-xl backdrop-saturate-[160%]",
-          "border border-white/[0.08]",
-          // 레이어드 섀도우 (인너 보더 + 외곽 그림자)
-          "shadow-[inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_0_1px_rgba(255,255,255,0.02),0_16px_40px_rgba(0,0,0,0.5)]",
-          // 스크롤시 약간 압축
-          "transition-transform duration-[400ms] ease-standard",
-          scrolled && "scale-[0.96]",
-          // 모바일 패딩 보정
-          "max-md:gap-3 max-md:pl-4"
+          "fixed left-1/2 -translate-x-1/2 z-50",
+          "transition-[top] duration-[400ms] ease-standard",
+          scrolled ? "top-3" : "top-6"
         )}
       >
-        <GnbLogo />
-        {/* 데스크탑 네비 */}
-        <div className="hidden md:block">
-          <GnbNav />
+        <div
+          className={cn(
+            "flex items-center gap-7 pl-[22px] pr-2 py-2 rounded-full",
+            "bg-surface/55 backdrop-blur-xl backdrop-saturate-[160%]",
+            "border border-white/[0.08]",
+            "shadow-[inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_0_1px_rgba(255,255,255,0.02),0_16px_40px_rgba(0,0,0,0.5)]",
+            "transition-transform duration-[400ms] ease-standard",
+            scrolled && "scale-[0.96]",
+            "max-md:gap-3 max-md:pl-4"
+          )}
+        >
+          <GnbLogo />
+
+          {/* 데스크탑 네비 */}
+          <div className="hidden md:block">
+            <GnbNav />
+          </div>
+
+          {/* 검색 / 닫기 버튼 */}
+          <div className="hidden md:block">
+            <button
+              onClick={() => setSearchOpen((v) => !v)}
+              aria-label={searchOpen ? "검색 닫기" : "검색"}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04] text-foreground-muted transition-all duration-200 ease-standard hover:border-white/[0.16] hover:bg-white/[0.08] hover:text-foreground"
+            >
+              {searchOpen
+                ? <X className="h-3.5 w-3.5" strokeWidth={2} />
+                : <Search className="h-3.5 w-3.5" strokeWidth={1.8} />
+              }
+            </button>
+          </div>
+
+          {/* 모바일 햄버거 */}
+          <div className="md:hidden">
+            <GnbMobileMenu />
+          </div>
         </div>
-        {/* 데스크탑 액션 */}
-        <div className="hidden md:block">
-          <GnbAction />
-        </div>
-        {/* 모바일 햄버거 */}
-        <div className="md:hidden">
-          <GnbMobileMenu />
-        </div>
-      </div>
-    </header>
+      </header>
+
+      {searchOpen && <SearchModal onClose={() => setSearchOpen(false)} />}
+    </>
   );
 }
