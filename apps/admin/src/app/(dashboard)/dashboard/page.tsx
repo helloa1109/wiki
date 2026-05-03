@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { FileText, Users, TrendingUp, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { AnalyticsSection } from '@/components/dashboard/AnalyticsSection'
 
 async function getStats() {
   const supabase = await createClient()
@@ -73,6 +74,9 @@ export default async function DashboardPage() {
           )
         })}
       </div>
+
+      {/* 애널리틱스 */}
+      <AnalyticsSection />
 
       {/* 빠른 링크 */}
       <div className="rounded-xl border border-white/[0.06] bg-[hsl(var(--surface))] p-5">
