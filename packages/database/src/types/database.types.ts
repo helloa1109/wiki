@@ -37,13 +37,13 @@ export interface Database {
       }
     }
     Views: {
-      // Views will be generated here
+      [_ in never]: never
     }
     Functions: {
-      // Functions will be generated here
+      [_ in never]: never
     }
     Enums: {
-      // Enums will be generated here
+      [_ in never]: never
     }
   }
 }
