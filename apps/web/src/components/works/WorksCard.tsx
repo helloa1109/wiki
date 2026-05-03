@@ -13,7 +13,7 @@ interface WorksCardProps {
 export function WorksCard({ id, title, thumbnail_url, tags, created_at }: WorksCardProps) {
   return (
     <Link
-      href={`/works/${id}`}
+      href={`/posts/${id}`}
       className={cn(
         'group flex flex-col overflow-hidden rounded-2xl',
         'border border-white/[0.06] bg-white/[0.02]',
