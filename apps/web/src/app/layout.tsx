@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { newsreader, jetbrainsMono } from "../lib/fonts";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 
 export const metadata: Metadata = {
   title: "Team DBC",
@@ -28,6 +29,7 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning className="font-sans antialiased">
+        <GoogleAnalytics />
         {children}
       </body>
     </html>
