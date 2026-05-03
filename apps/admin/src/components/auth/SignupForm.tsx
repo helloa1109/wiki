@@ -76,11 +76,7 @@ export function SignupForm() {
     })
 
     if (error) {
-      setError(
-        error.message.includes('already registered')
-          ? '이미 사용 중인 이메일입니다.'
-          : '가입 중 오류가 발생했습니다. 다시 시도해주세요.',
-      )
+      setError(error.message)
       setLoading(false)
       return
     }
