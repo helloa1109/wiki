@@ -1,6 +1,8 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { MembersTable } from '@/components/members/MembersTable'
 
+export const dynamic = 'force-dynamic'
+
 export default async function MembersPage() {
   const supabase = createAdminClient()
 
