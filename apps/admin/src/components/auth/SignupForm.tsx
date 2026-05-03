@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
+import { checkEmailExists } from '@/app/actions/auth'
 import { AuthCard } from './AuthCard'
 import { AuthInput } from './AuthInput'
 
@@ -65,6 +66,13 @@ export function SignupForm() {
     if (!validate()) return
 
     setLoading(true)
+
+    const exists = await checkEmailExists(values.email)
+    if (exists) {
+      setFieldErrors((prev) => ({ ...prev, email: '이미 사용 중인 이메일입니다.' }))
+      setLoading(false)
+      return
+    }
 
     const supabase = createClient()
     const { error } = await supabase.auth.signUp({
