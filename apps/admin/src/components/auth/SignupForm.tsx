@@ -4,11 +4,12 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
+import { toInternalEmail } from '@/lib/auth'
 import { AuthCard } from './AuthCard'
 import { AuthInput } from './AuthInput'
 
 interface FieldErrors {
-  email?: string
+  id?: string
   nickname?: string
   password?: string
   passwordConfirm?: string
@@ -16,7 +17,7 @@ interface FieldErrors {
 
 export function SignupForm() {
   const [values, setValues] = useState({
-    email: '',
+    id: '',
     nickname: '',
     password: '',
     passwordConfirm: '',
@@ -34,7 +35,13 @@ export function SignupForm() {
   const validate = (): boolean => {
     const errors: FieldErrors = {}
 
-    if (!values.email) errors.email = '이메일을 입력해주세요.'
+    if (!values.id) {
+      errors.id = '아이디를 입력해주세요.'
+    } else if (values.id.length < 3) {
+      errors.id = '아이디는 3자 이상이어야 합니다.'
+    } else if (!/^[a-zA-Z0-9_]+$/.test(values.id)) {
+      errors.id = '영문, 숫자, 밑줄(_)만 사용할 수 있습니다.'
+    }
 
     if (!values.nickname) {
       errors.nickname = '닉네임을 입력해주세요.'
@@ -68,15 +75,19 @@ export function SignupForm() {
 
     const supabase = createClient()
     const { error } = await supabase.auth.signUp({
-      email: values.email,
+      email: toInternalEmail(values.id),
       password: values.password,
       options: {
-        data: { nickname: values.nickname },
+        data: { nickname: values.nickname, id: values.id },
       },
     })
 
     if (error) {
-      setError(error.message)
+      setError(
+        error.message.includes('already registered')
+          ? '이미 사용 중인 아이디입니다.'
+          : error.message,
+      )
       setLoading(false)
       return
     }
@@ -88,13 +99,13 @@ export function SignupForm() {
     return (
       <AuthCard title="가입 완료" description="관리자 페이지">
         <div className="flex flex-col items-center gap-4 py-4 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.06] text-2xl">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.06] text-xl text-foreground">
             ✓
           </div>
           <div>
-            <p className="text-[14px] text-foreground">이메일을 확인해주세요</p>
+            <p className="text-[14px] text-foreground">가입이 완료됐어요</p>
             <p className="mt-1 text-[13px] text-foreground-muted">
-              {values.email} 으로 확인 메일을 발송했어요.
+              아이디 <span className="text-foreground">{values.id}</span> 로 로그인할 수 있어요.
             </p>
           </div>
           <Link
@@ -116,13 +127,13 @@ export function SignupForm() {
     <AuthCard title="회원가입" description="관리자 페이지">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <AuthInput
-          label="이메일"
-          type="email"
-          value={values.email}
-          onChange={set('email')}
-          placeholder="admin@dbc.kr"
-          autoComplete="email"
-          error={fieldErrors.email}
+          label="아이디"
+          type="text"
+          value={values.id}
+          onChange={set('id')}
+          placeholder="영문, 숫자, 밑줄 3자 이상"
+          autoComplete="username"
+          error={fieldErrors.id}
         />
         <AuthInput
           label="닉네임"
@@ -171,10 +182,7 @@ export function SignupForm() {
 
         <p className="text-center text-[13px] text-foreground-muted">
           이미 계정이 있으신가요?{' '}
-          <Link
-            href="/login"
-            className="text-foreground underline-offset-4 hover:underline"
-          >
+          <Link href="/login" className="text-foreground underline-offset-4 hover:underline">
             로그인
           </Link>
         </p>
