@@ -2,18 +2,17 @@
 
 import Link from "next/link";
 import { useRef, useState, type MouseEvent } from "react";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
   label: string;
   href: string;
-  active?: boolean;
-  /** 모바일에서 숨김 */
   hideOnMobile?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Posts", href: "/posts", active: true },
+  { label: "Posts", href: "/posts" },
   { label: "About", href: "/about" },
   { label: "Works", href: "/works" },
   { label: "Notes", href: "/notes", hideOnMobile: true },
@@ -25,13 +24,10 @@ interface IndicatorState {
   height: number;
 }
 
-/**
- * GNB 중앙 네비. 호버시 인디케이터가 부드럽게 슬라이드 (스프링 이징).
- * 활성 항목 텍스트는 항상 진하게 표시.
- */
 export function GnbNav() {
   const navRef = useRef<HTMLElement>(null);
   const [indicator, setIndicator] = useState<IndicatorState | null>(null);
+  const pathname = usePathname();
 
   const handleEnter = (e: MouseEvent<HTMLAnchorElement>) => {
     const target = e.currentTarget;
@@ -71,24 +67,27 @@ export function GnbNav() {
         }}
       />
 
-      {NAV_ITEMS.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          onMouseEnter={handleEnter}
-          className={cn(
-            "relative z-10 px-3.5 py-2 rounded-full",
-            "text-[13.5px] font-medium tracking-tight",
-            "transition-colors duration-200 ease-standard",
-            item.active
-              ? "text-foreground"
-              : "text-foreground-muted hover:text-foreground",
-            item.hideOnMobile && "hidden md:inline-block"
-          )}
-        >
-          {item.label}
-        </Link>
-      ))}
+      {NAV_ITEMS.map((item) => {
+        const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onMouseEnter={handleEnter}
+            className={cn(
+              "relative z-10 px-3.5 py-2 rounded-full",
+              "text-[13.5px] font-medium tracking-tight",
+              "transition-colors duration-200 ease-standard",
+              isActive
+                ? "text-white"
+                : "text-foreground-muted hover:text-foreground",
+              item.hideOnMobile && "hidden md:inline-block"
+            )}
+          >
+            {item.label}
+          </Link>
+        );
+      })}
     </nav>
   );
 }

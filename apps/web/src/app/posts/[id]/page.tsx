@@ -17,7 +17,7 @@ type Post = {
   created_at: string | null
 }
 
-export default async function WorksDetailPage({ params }: { params: { id: string } }) {
+export default async function PostsDetailPage({ params }: { params: { id: string } }) {
   const supabase = await createClient()
 
   const { data: post } = await supabase
@@ -36,10 +36,10 @@ export default async function WorksDetailPage({ params }: { params: { id: string
       <main className="mx-auto max-w-3xl px-6 pb-24 pt-32">
         {/* 뒤로가기 */}
         <Link
-          href="/works"
+          href="/posts"
           className="mb-8 inline-flex items-center gap-1.5 text-[13px] text-foreground-muted transition-colors hover:text-foreground"
         >
-          ← Works
+          ← Posts
         </Link>
 
         {/* 썸네일 */}
