@@ -35,7 +35,7 @@ export default async function WorksPage() {
       <main className="mx-auto max-w-5xl px-6 pb-24 pt-32">
         {/* 헤더 */}
         <div className="mb-12">
-          <h1 className="text-[32px] font-bold tracking-tight text-foreground">Works</h1>
+          <h1 className="text-[32px] font-bold tracking-tight text-foreground">Posts</h1>
           <p className="mt-2 text-[15px] text-foreground-muted">
             DBC 팀의 작업물과 프로젝트를 소개합니다.
           </p>
