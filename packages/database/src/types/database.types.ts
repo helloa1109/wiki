@@ -12,6 +12,41 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      posts: {
+        Row: {
+          id: string
+          title: string
+          content: string | null
+          thumbnail_url: string | null
+          tags: string[]
+          author_id: string | null
+          published: boolean
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          title: string
+          content?: string | null
+          thumbnail_url?: string | null
+          tags?: string[]
+          author_id?: string | null
+          published?: boolean
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          title?: string
+          content?: string | null
+          thumbnail_url?: string | null
+          tags?: string[]
+          author_id?: string | null
+          published?: boolean
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
       profiles: {
         Row: {
           id: string
