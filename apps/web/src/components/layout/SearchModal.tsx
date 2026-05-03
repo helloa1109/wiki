@@ -11,17 +11,25 @@ interface SearchResult {
   created_at: string | null
 }
 
-export function SearchModal({ onClose }: { onClose: () => void }) {
+interface SearchModalProps {
+  visible: boolean
+  onClose: () => void
+}
+
+export function SearchModal({ visible, onClose }: SearchModalProps) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    inputRef.current?.focus()
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
-  }, [])
+    if (visible) {
+      inputRef.current?.focus()
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+  }, [visible])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -47,17 +55,29 @@ export function SearchModal({ onClose }: { onClose: () => void }) {
   const isEmpty = query.trim() && !loading && results.length === 0
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col bg-[#0a0a0a]/95 backdrop-blur-2xl">
-
+    <div
+      className="fixed inset-0 z-40 flex flex-col"
+      style={{
+        backgroundColor: `rgba(10,10,10,${visible ? 0.95 : 0})`,
+        backdropFilter: `blur(${visible ? 24 : 0}px)`,
+        transition: 'background-color 300ms ease, backdrop-filter 300ms ease',
+        pointerEvents: visible ? 'auto' : 'none',
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
       {/* 결과 영역 */}
-      <div className="flex flex-1 flex-col items-center justify-center px-6 pt-24">
-        {/* 초기 상태 or 빈 결과 */}
+      <div
+        className="flex flex-1 flex-col items-center justify-center px-6 pt-24"
+        style={{
+          opacity: visible ? 1 : 0,
+          transform: visible ? 'translateY(0)' : 'translateY(14px)',
+          transition: 'opacity 300ms ease, transform 300ms ease',
+          transitionDelay: visible ? '60ms' : '0ms',
+        }}
+      >
         {(!query.trim() || isEmpty) && (
           <div className="flex flex-col items-center gap-4 text-center">
-            <Search
-              className="h-11 w-11 text-foreground-subtle"
-              strokeWidth={1.3}
-            />
+            <Search className="h-11 w-11 text-foreground-subtle" strokeWidth={1.3} />
             {isEmpty ? (
               <>
                 <p className="text-[17px] font-semibold text-foreground">검색 결과가 없습니다</p>
@@ -69,7 +89,6 @@ export function SearchModal({ onClose }: { onClose: () => void }) {
           </div>
         )}
 
-        {/* 결과 목록 */}
         {results.length > 0 && (
           <div className="w-full max-w-2xl space-y-2 overflow-y-auto pb-6">
             {results.map((r) => (
@@ -98,20 +117,26 @@ export function SearchModal({ onClose }: { onClose: () => void }) {
         )}
       </div>
 
-      {/* 하단 검색 입력 */}
-      <div className="border-t border-white/[0.08] px-6 py-5">
-        <div className="mx-auto flex max-w-2xl items-center gap-3 rounded-2xl border border-brand/30 bg-white/[0.03] px-5 py-3.5 focus-within:border-brand/60 transition-colors duration-200">
+      {/* 하단 입력창 — 아래에서 슬라이드 업 */}
+      <div
+        className="border-t border-white/[0.08] px-6 py-5"
+        style={{
+          opacity: visible ? 1 : 0,
+          transform: visible ? 'translateY(0)' : 'translateY(20px)',
+          transition: 'opacity 300ms ease, transform 300ms cubic-bezier(0.16,1,0.3,1)',
+          transitionDelay: visible ? '40ms' : '0ms',
+        }}
+      >
+        <div className="mx-auto flex max-w-2xl items-center gap-3 rounded-2xl border border-brand/30 bg-white/[0.03] px-5 py-3.5 transition-colors duration-200 focus-within:border-brand/60">
           <input
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="검색어를 입력하세요"
-            className="flex-1 bg-transparent text-[15px] text-foreground placeholder:text-foreground-subtle outline-none"
+            className="flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-foreground-subtle"
           />
-          <button
-            className="shrink-0 rounded-xl bg-foreground px-4 py-2 text-[13px] font-semibold text-background transition-opacity hover:opacity-80"
-          >
-            AI 검색
+          <button className="shrink-0 rounded-xl bg-foreground px-4 py-2 text-[13px] font-semibold text-background transition-opacity hover:opacity-80">
+            검색
           </button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useScrolled } from "@/lib/hooks/useScrolled";
@@ -11,7 +11,20 @@ import { SearchModal } from "./SearchModal";
 
 export function GNB() {
   const scrolled = useScrolled(32);
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);   // DOM에 있음
+  const [visible, setVisible] = useState(false);   // 애니메이션 on/off
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const openSearch = useCallback(() => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setMounted(true);
+    requestAnimationFrame(() => setVisible(true));
+  }, []);
+
+  const closeSearch = useCallback(() => {
+    setVisible(false);
+    closeTimer.current = setTimeout(() => setMounted(false), 300);
+  }, []);
 
   return (
     <>
@@ -35,7 +48,6 @@ export function GNB() {
         >
           <GnbLogo />
 
-          {/* 데스크탑 네비 */}
           <div className="hidden md:block">
             <GnbNav />
           </div>
@@ -43,25 +55,32 @@ export function GNB() {
           {/* 검색 / 닫기 버튼 */}
           <div className="hidden md:block">
             <button
-              onClick={() => setSearchOpen((v) => !v)}
-              aria-label={searchOpen ? "검색 닫기" : "검색"}
+              onClick={mounted ? closeSearch : openSearch}
+              aria-label={mounted ? "검색 닫기" : "검색"}
               className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04] text-foreground-muted transition-all duration-200 ease-standard hover:border-white/[0.16] hover:bg-white/[0.08] hover:text-foreground"
             >
-              {searchOpen
-                ? <X className="h-3.5 w-3.5" strokeWidth={2} />
-                : <Search className="h-3.5 w-3.5" strokeWidth={1.8} />
-              }
+              <span
+                className="flex items-center justify-center transition-all duration-200"
+                style={{
+                  opacity: 1,
+                  transform: mounted ? 'rotate(90deg) scale(0.9)' : 'rotate(0deg) scale(1)',
+                }}
+              >
+                {mounted
+                  ? <X className="h-3.5 w-3.5" strokeWidth={2} />
+                  : <Search className="h-3.5 w-3.5" strokeWidth={1.8} />
+                }
+              </span>
             </button>
           </div>
 
-          {/* 모바일 햄버거 */}
           <div className="md:hidden">
             <GnbMobileMenu />
           </div>
         </div>
       </header>
 
-      {searchOpen && <SearchModal onClose={() => setSearchOpen(false)} />}
+      {mounted && <SearchModal visible={visible} onClose={closeSearch} />}
     </>
   );
 }
