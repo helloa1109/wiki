@@ -45,12 +45,13 @@ export function SlideFromSides() {
   useEffect(() => {
     const el = ref.current
     if (!el) return
+    // disconnect 하지 않아 스크롤 역방향 시 되돌아감
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0]
-        if (entry?.isIntersecting) { setVisible(true); observer.disconnect() }
+        if (entry) setVisible(entry.isIntersecting)
       },
-      { threshold: 0.25 }
+      { threshold: 0.2 }
     )
     observer.observe(el)
     return () => observer.disconnect()
@@ -62,40 +63,35 @@ export function SlideFromSides() {
 
         {/* 왼쪽 카드 그룹 */}
         <div
-          className="flex shrink-0 gap-3 pl-0"
+          className="flex shrink-0 gap-3"
           style={{
             transform: visible ? 'translateX(0)' : 'translateX(-110%)',
             transition: 'transform 1s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          {LEFT_CARDS.map((card, i) => (
+          {LEFT_CARDS.map((card) => (
             <div
               key={card.id}
-              className={`relative flex h-[260px] w-[180px] flex-col justify-end overflow-hidden rounded-2xl p-5 ${card.bg} shrink-0`}
-              style={{ transitionDelay: visible ? `${i * 80}ms` : '0ms' }}
+              className={`relative flex h-[260px] w-[180px] shrink-0 flex-col justify-end overflow-hidden rounded-2xl p-5 ${card.bg}`}
             >
-              <p
-                className={`text-[11px] font-medium uppercase tracking-widest ${card.dark ? 'text-white/50' : 'text-black/40'}`}
-              >
+              <p className={`text-[11px] font-medium uppercase tracking-widest ${card.dark ? 'text-white/50' : 'text-black/40'}`}>
                 {card.sub}
               </p>
-              <p
-                className={`mt-1 text-[17px] font-bold tracking-tight ${card.dark ? 'text-white' : 'text-gray-900'}`}
-              >
+              <p className={`mt-1 text-[17px] font-bold tracking-tight ${card.dark ? 'text-white' : 'text-gray-900'}`}>
                 {card.title}
               </p>
             </div>
           ))}
         </div>
 
-        {/* 중앙 텍스트 */}
+        {/* 중앙 텍스트 — 양쪽 여백 확보 */}
         <div
-          className="flex flex-1 flex-col items-center justify-center gap-3 px-8 text-center"
+          className="flex flex-1 flex-col items-center justify-center gap-3 px-24 text-center max-md:px-10"
           style={{
             opacity: visible ? 1 : 0,
             transform: visible ? 'translateY(0)' : 'translateY(16px)',
             transition: 'opacity 0.8s ease, transform 0.8s ease',
-            transitionDelay: visible ? '300ms' : '0ms',
+            transitionDelay: visible ? '250ms' : '0ms',
           }}
         >
           <p className="text-[11px] uppercase tracking-[0.14em] text-foreground-subtle">Our Works</p>
@@ -106,17 +102,16 @@ export function SlideFromSides() {
 
         {/* 오른쪽 카드 그룹 */}
         <div
-          className="flex shrink-0 gap-3 pr-0"
+          className="flex shrink-0 gap-3"
           style={{
             transform: visible ? 'translateX(0)' : 'translateX(110%)',
             transition: 'transform 1s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          {RIGHT_CARDS.map((card, i) => (
+          {RIGHT_CARDS.map((card) => (
             <div
               key={card.id}
-              className={`relative flex h-[260px] w-[180px] flex-col justify-end overflow-hidden rounded-2xl p-5 ${card.bg} shrink-0`}
-              style={{ transitionDelay: visible ? `${i * 80}ms` : '0ms' }}
+              className={`relative flex h-[260px] w-[180px] shrink-0 flex-col justify-end overflow-hidden rounded-2xl p-5 ${card.bg}`}
             >
               {card.accent && (
                 <div
