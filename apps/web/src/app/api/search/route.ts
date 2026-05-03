@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get('q') ?? ''
   if (!q.trim()) return NextResponse.json({ results: [] })
@@ -10,8 +12,8 @@ export async function GET(req: NextRequest) {
     .from('posts')
     .select('id, title, tags, created_at')
     .eq('published', true)
-    .ilike('title', `%${q}%`)
-    .limit(10)
+    .or(`title.ilike.%${q}%,content.ilike.%${q}%`)
+    .limit(12)
 
   return NextResponse.json({ results: data ?? [] })
 }
