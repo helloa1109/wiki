@@ -58,7 +58,7 @@ export function SlideFromSides() {
   }, [])
 
   return (
-    <div ref={ref} className="relative overflow-hidden py-28">
+    <div ref={ref} className="relative overflow-hidden px-10 py-28 max-md:px-6">
       <div className="flex items-center justify-between">
 
         {/* 왼쪽 카드 그룹 */}

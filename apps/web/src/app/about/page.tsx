@@ -50,7 +50,7 @@ export default function AboutPage() {
             <div className="absolute right-[-5%] top-[40%] h-[400px] w-[400px] rounded-full bg-brand/[0.03] blur-[100px]" />
           </div>
 
-          <div className="relative z-10 max-w-5xl">
+          <div className="relative z-10 mx-auto max-w-5xl w-full">
             <p
               className="mb-6 text-[13px] font-medium uppercase tracking-[0.14em] text-brand opacity-0 animate-fade-up"
               style={{ animationDelay: '200ms' }}
