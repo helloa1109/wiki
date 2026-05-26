@@ -175,6 +175,9 @@ def scrape_wevity() -> list[Contest]:
 
 
 def upsert_contests(client, contests: list[Contest]) -> None:
+    if not contests:
+        log.info("no contests to upsert, skipping")
+        return
     rows = [
         {
             "title": c.title,
