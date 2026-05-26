@@ -10,6 +10,8 @@ const NAV_ITEMS = [
   { label: "Posts", href: "/posts", desc: "글 & 아티클" },
   { label: "Works", href: "/works", desc: "작업물" },
   { label: "Notes", href: "/notes", desc: "짧은 메모" },
+  { label: "Contests", href: "/contests", desc: "공모전" },
+  { label: "News", href: "/news", desc: "AI/테크 뉴스" },
   { label: "About", href: "/about", desc: "팀 소개" },
 ];
 
