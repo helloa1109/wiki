@@ -132,7 +132,7 @@ def scrape_thinkcontest() -> list[Contest]:
         if not rows:
             rows = soup.select("div.list li, table.list tr, .item_list li")
         if not rows:
-            log.warning("page %d: no rows found (html snippet: %s)", pg, str(soup.body)[:300] if soup.body else "")
+            log.warning("page %d: no rows found (html snippet: %s)", pg, str(soup.body)[:2000] if soup.body else "")
             break
 
         page_count = 0
