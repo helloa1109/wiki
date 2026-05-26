@@ -135,9 +135,11 @@ export default async function NewsPage({
                   )}
                 </div>
 
-                <h2 className="mb-2 text-[15px] font-semibold leading-snug text-foreground">
-                  {item.title}
-                </h2>
+                <Link href={`/news/${item.id}`}>
+                  <h2 className="mb-2 text-[15px] font-semibold leading-snug text-foreground hover:text-foreground/80 transition-colors">
+                    {item.title}
+                  </h2>
+                </Link>
 
                 {item.summary && (
                   <p className="mb-4 text-[13px] leading-[1.7] text-foreground-muted line-clamp-3">
