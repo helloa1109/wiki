@@ -25,8 +25,8 @@ CATEGORY_KEYWORDS: dict[str, list[str]] = {
     "startup": ["창업", "스타트업", "사업계획", "비즈니스", "벤처"],
 }
 
-WEVITY_BASE = "https://www.wevity.com"
-WEVITY_LIST_URL = f"{WEVITY_BASE}/?c=find&s=1&gub=1&cidx=18&cata=A&page={{page}}"
+THINKCONTEST_BASE = "https://www.thinkcontest.com"
+THINKCONTEST_LIST_URL = f"{THINKCONTEST_BASE}/Contest/list.aspx?CategoryCode=007&pageIndex={{page}}"
 
 
 @dataclass
@@ -88,7 +88,7 @@ def scrape_detail(url: str) -> dict:
     img = soup.select_one(".view-thumb img, .thumb img, .contest-img img")
     if img:
         src = img.get("src", "")
-        result["thumbnail_url"] = src if src.startswith("http") else WEVITY_BASE + src
+        result["thumbnail_url"] = src if src.startswith("http") else THINKCONTEST_BASE + src
 
     for row in soup.select("dl dt, table th, .info-list li"):
         text = row.get_text(strip=True)
@@ -118,21 +118,21 @@ def scrape_detail(url: str) -> dict:
     return result
 
 
-def scrape_wevity() -> list[Contest]:
+def scrape_thinkcontest() -> list[Contest]:
     items: list[Contest] = []
 
     for pg in range(1, WEVITY_MAX_PAGES + 1):
-        url = WEVITY_LIST_URL.format(page=pg)
-        log.info("scraping wevity page %d → %s", pg, url)
+        url = THINKCONTEST_LIST_URL.format(page=pg)
+        log.info("scraping thinkcontest page %d → %s", pg, url)
         soup = fetch(url)
         if not soup:
             break
 
-        rows = soup.select("ul.list li, .contest-list li, .find-list li")
+        rows = soup.select("ul.list > li, .list_wrap li, .contest_list li, ul.bbs_list li")
         if not rows:
-            rows = soup.select("div.list-wrap .item, .board-list tr")
+            rows = soup.select("div.list li, table.list tr, .item_list li")
         if not rows:
-            log.warning("page %d: no rows found, stopping", pg)
+            log.warning("page %d: no rows found (html snippet: %s)", pg, str(soup.body)[:300] if soup.body else "")
             break
 
         page_count = 0
@@ -142,14 +142,14 @@ def scrape_wevity() -> list[Contest]:
                 continue
 
             href = a.get("href", "")
-            detail_url = href if href.startswith("http") else WEVITY_BASE + href
+            detail_url = href if href.startswith("http") else THINKCONTEST_BASE + "/" + href.lstrip("/")
 
-            title_el = row.select_one(".title, .tit, h3, h4, .subject")
+            title_el = row.select_one(".tit, .title, .subject, strong, h3, h4")
             title = title_el.get_text(strip=True) if title_el else a.get_text(strip=True)
             if not title:
                 continue
 
-            org_el = row.select_one(".organizer, .host, .org, .company")
+            org_el = row.select_one(".host, .org, .organizer, .company, .sponsor")
             organizer = org_el.get_text(strip=True) if org_el else None
 
             contest = Contest(
@@ -157,6 +157,7 @@ def scrape_wevity() -> list[Contest]:
                 wevity_url=detail_url,
                 organizer=organizer,
                 category=classify_category(title, organizer or ""),
+                source="thinkcontest",
             )
 
             time.sleep(REQUEST_SLEEP_SEC)
@@ -202,7 +203,7 @@ def upsert_contests(client, contests: list[Contest]) -> None:
 def main():
     log.info("=== Contest Scraper start (dry_run=%s) ===", DRY_RUN)
 
-    contests = scrape_wevity()
+    contests = scrape_thinkcontest()
     log.info("total scraped: %d", len(contests))
 
     if DRY_RUN:
