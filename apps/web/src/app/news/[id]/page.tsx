@@ -58,23 +58,6 @@ export default async function NewsDetailPage({
           News
         </Link>
 
-        {/* 대표 이미지 */}
-        <div className="mb-8 w-full h-56 rounded-2xl overflow-hidden border border-white/[0.06]">
-          {item.image_url ? (
-            <img
-              src={item.image_url}
-              alt={item.title}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-white/[0.02] flex items-center justify-center">
-              <span className="text-[12px] uppercase tracking-[0.12em] text-foreground-subtle">
-                No Image
-              </span>
-            </div>
-          )}
-        </div>
-
         {/* 카테고리 + 출처 */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
           {item.categories?.map((cat: string) => (
@@ -100,6 +83,23 @@ export default async function NewsDetailPage({
         <h1 className="mb-8 text-[26px] font-bold leading-snug tracking-tight text-foreground">
           {item.title}
         </h1>
+
+        {/* 대표 이미지 */}
+        <div className="mb-8 w-full h-56 rounded-2xl overflow-hidden border border-white/[0.06]">
+          {item.image_url ? (
+            <img
+              src={item.image_url}
+              alt={item.title}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-white/[0.02] flex items-center justify-center">
+              <span className="text-[12px] uppercase tracking-[0.12em] text-foreground-subtle">
+                No Image
+              </span>
+            </div>
+          )}
+        </div>
 
         {/* 요약 */}
         <div className="mb-10 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
