@@ -25,8 +25,8 @@ CATEGORY_KEYWORDS: dict[str, list[str]] = {
     "startup": ["창업", "스타트업", "사업계획", "비즈니스", "벤처"],
 }
 
-DETIZEN_BASE = "https://www.detizen.com"
-DETIZEN_LIST_URL = f"{DETIZEN_BASE}/Board/List.asp?brCd=01&brsubCd=0105&pageIndex={{page}}"
+LINKAREER_BASE = "https://linkareer.com"
+LINKAREER_LIST_URL = f"{LINKAREER_BASE}/list/contest?page={{page}}"
 
 
 @dataclass
@@ -88,7 +88,7 @@ def scrape_detail(url: str) -> dict:
     img = soup.select_one(".view-thumb img, .thumb img, .contest-img img")
     if img:
         src = img.get("src", "")
-        result["thumbnail_url"] = src if src.startswith("http") else DETIZEN_BASE + src
+        result["thumbnail_url"] = src if src.startswith("http") else LINKAREER_BASE + src
 
     for row in soup.select("dl dt, table th, .info-list li"):
         text = row.get_text(strip=True)
@@ -118,18 +118,19 @@ def scrape_detail(url: str) -> dict:
     return result
 
 
-def scrape_detizen() -> list[Contest]:
+def scrape_linkareer() -> list[Contest]:
     items: list[Contest] = []
 
     for pg in range(1, WEVITY_MAX_PAGES + 1):
-        url = DETIZEN_LIST_URL.format(page=pg)
-        log.info("scraping detizen page %d → %s", pg, url)
+        url = LINKAREER_LIST_URL.format(page=pg)
+        log.info("scraping linkareer page %d → %s", pg, url)
         soup = fetch(url)
         if not soup:
             break
 
-        rows = soup.select("table.list tr, .bbs_list tr, table tr")
-        rows = [r for r in rows if r.select_one("a[href]")]
+        rows = soup.select(".activity-list-item, .list-item, .contest-item, article, .card")
+        if not rows:
+            rows = soup.select("li[class*='item'], li[class*='card'], div[class*='item']")
         if not rows:
             log.warning("page %d: no rows found (html snippet: %s)", pg, str(soup.body)[:2000] if soup.body else "")
             break
@@ -141,21 +142,22 @@ def scrape_detizen() -> list[Contest]:
                 continue
 
             href = a.get("href", "")
-            detail_url = href if href.startswith("http") else DETIZEN_BASE + "/" + href.lstrip("/")
+            detail_url = href if href.startswith("http") else LINKAREER_BASE + href
 
-            title = a.get_text(strip=True)
+            title_el = row.select_one("h2, h3, h4, .title, .tit, strong")
+            title = title_el.get_text(strip=True) if title_el else a.get_text(strip=True)
             if not title or len(title) < 3:
                 continue
 
-            tds = row.select("td")
-            organizer = tds[1].get_text(strip=True) if len(tds) > 1 else None
+            org_el = row.select_one(".organizer, .host, .org, .company, .sponsor")
+            organizer = org_el.get_text(strip=True) if org_el else None
 
             contest = Contest(
                 title=title,
                 wevity_url=detail_url,
                 organizer=organizer,
                 category=classify_category(title, organizer or ""),
-                source="detizen",
+                source="linkareer",
             )
 
             time.sleep(REQUEST_SLEEP_SEC)
@@ -201,7 +203,7 @@ def upsert_contests(client, contests: list[Contest]) -> None:
 def main():
     log.info("=== Contest Scraper start (dry_run=%s) ===", DRY_RUN)
 
-    contests = scrape_detizen()
+    contests = scrape_linkareer()
     log.info("total scraped: %d", len(contests))
 
     if DRY_RUN:
