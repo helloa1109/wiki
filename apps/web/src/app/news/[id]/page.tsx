@@ -25,11 +25,21 @@ export default async function NewsDetailPage({
   const { id } = await params
   const supabase = await createClient()
 
+  type NewsItem = {
+    id: string
+    title: string
+    summary: string | null
+    url: string
+    source: string | null
+    categories: string[]
+    published_at: string | null
+  }
+
   const { data: item } = await supabase
     .from('news')
     .select('*')
     .eq('id', id)
-    .single()
+    .single() as { data: NewsItem | null }
 
   if (!item) notFound()
 
