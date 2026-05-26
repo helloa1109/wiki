@@ -1,0 +1,37 @@
+name: Scrape Contests Daily
+
+on:
+  schedule:
+    - cron: "0 23 * * *"   # KST 08:00 (UTC 23:00)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (로그만 출력, DB 저장 안 함)"
+        required: false
+        default: "false"
+      max_pages:
+        description: "크롤링할 최대 페이지 수"
+        required: false
+        default: "5"
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: scraper/requirements.txt
+
+      - run: pip install -r scraper/requirements.txt
+
+      - name: Run scraper
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          WEVITY_MAX_PAGES: ${{ github.event.inputs.max_pages || '5' }}
+        run: python scraper/scraper.py

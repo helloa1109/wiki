@@ -16,6 +16,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Posts", href: "/posts" },
   { label: "Works", href: "/works" },
   { label: "Notes", href: "/notes", hideOnMobile: true },
+  { label: "Contests", href: "/contests", hideOnMobile: true },
 ];
 
 interface IndicatorState {
