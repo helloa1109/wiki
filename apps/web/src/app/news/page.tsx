@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react'
 import { GNB } from '@/components/layout/GNB'
 import { GrainOverlay } from '@/components/effects/GrainOverlay'
 import { CursorSpotlight } from '@/components/effects/CursorSpotlight'
@@ -23,6 +23,7 @@ type NewsItem = {
   image_url: string | null
 }
 
+const PAGE_SIZE = 15
 const ALL_CATEGORIES = ['AI', '빅테크', '스타트업', '신기술', '정책/규제', '리서치']
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -34,31 +35,44 @@ const CATEGORY_COLORS: Record<string, string> = {
   '리서치': 'bg-pink-500/10 text-pink-400 border-pink-500/20',
 }
 
-async function getNews(category: string): Promise<NewsItem[]> {
+async function getNews(category: string, page: number): Promise<{ items: NewsItem[]; total: number }> {
   const supabase = await createClient()
+  const from = (page - 1) * PAGE_SIZE
+  const to = from + PAGE_SIZE - 1
+
   let q = supabase
     .from('news')
-    .select('id, title, summary, url, source, categories, published_at')
+    .select('id, title, summary, url, source, categories, published_at, image_url', { count: 'exact' })
     .order('published_at', { ascending: false })
     .order('created_at', { ascending: false })
-    .limit(50)
+    .range(from, to)
 
   if (category !== 'all') {
     q = q.contains('categories', [category])
   }
 
-  const { data } = await q
-  return (data as NewsItem[]) ?? []
+  const { data, count } = await q
+  return { items: (data as NewsItem[]) ?? [], total: count ?? 0 }
+}
+
+function pageHref(category: string, page: number) {
+  const params = new URLSearchParams()
+  if (category !== 'all') params.set('category', category)
+  if (page > 1) params.set('page', String(page))
+  const qs = params.toString()
+  return qs ? `/news?${qs}` : '/news'
 }
 
 export default async function NewsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string }>
+  searchParams: Promise<{ category?: string; page?: string }>
 }) {
   const params = await searchParams
   const category = params.category ?? 'all'
-  const news = await getNews(category)
+  const page = Math.max(1, parseInt(params.page ?? '1', 10))
+  const { items: news, total } = await getNews(category, page)
+  const totalPages = Math.ceil(total / PAGE_SIZE)
 
   return (
     <>
@@ -108,69 +122,119 @@ export default async function NewsPage({
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
-            {news.map((item) => (
-              <article
-                key={item.id}
-                className="group rounded-2xl border border-white/[0.08] overflow-hidden transition-colors hover:border-white/[0.14]"
-              >
-                {item.image_url && (
-                  <Link href={`/news/${item.id}`}>
-                    <img
-                      src={item.image_url}
-                      alt={item.title}
-                      className="w-full h-44 object-cover"
-                    />
-                  </Link>
-                )}
-                <div className="p-5">
-                <div className="mb-3 flex flex-wrap items-center gap-2">
-                  {item.categories?.map((cat) => (
-                    <span
-                      key={cat}
-                      className={[
-                        'rounded-full border px-2.5 py-0.5 text-[11px] font-medium',
-                        CATEGORY_COLORS[cat] ?? 'bg-white/[0.06] text-foreground-muted border-white/[0.06]',
-                      ].join(' ')}
-                    >
-                      {cat}
-                    </span>
-                  ))}
-                  {item.source && (
-                    <span className="text-[11px] text-foreground-subtle">{item.source}</span>
+          <>
+            <div className="flex flex-col gap-4">
+              {news.map((item) => (
+                <article
+                  key={item.id}
+                  className="group rounded-2xl border border-white/[0.08] overflow-hidden transition-colors hover:border-white/[0.14]"
+                >
+                  {item.image_url && (
+                    <Link href={`/news/${item.id}`}>
+                      <img
+                        src={item.image_url}
+                        alt={item.title}
+                        className="w-full h-44 object-cover"
+                      />
+                    </Link>
                   )}
-                  {item.published_at && (
-                    <span className="ml-auto text-[11px] text-foreground-subtle">
-                      {item.published_at}
-                    </span>
-                  )}
-                </div>
+                  <div className="p-5">
+                    <div className="mb-3 flex flex-wrap items-center gap-2">
+                      {item.categories?.map((cat) => (
+                        <span
+                          key={cat}
+                          className={[
+                            'rounded-full border px-2.5 py-0.5 text-[11px] font-medium',
+                            CATEGORY_COLORS[cat] ?? 'bg-white/[0.06] text-foreground-muted border-white/[0.06]',
+                          ].join(' ')}
+                        >
+                          {cat}
+                        </span>
+                      ))}
+                      {item.source && (
+                        <span className="text-[11px] text-foreground-subtle">{item.source}</span>
+                      )}
+                      {item.published_at && (
+                        <span className="ml-auto text-[11px] text-foreground-subtle">
+                          {item.published_at}
+                        </span>
+                      )}
+                    </div>
 
-                <Link href={`/news/${item.id}`}>
-                  <h2 className="mb-2 text-[15px] font-semibold leading-snug text-foreground hover:text-foreground/80 transition-colors">
-                    {item.title}
-                  </h2>
+                    <Link href={`/news/${item.id}`}>
+                      <h2 className="mb-2 text-[15px] font-semibold leading-snug text-foreground hover:text-foreground/80 transition-colors">
+                        {item.title}
+                      </h2>
+                    </Link>
+
+                    {item.summary && (
+                      <p className="mb-4 text-[13px] leading-[1.7] text-foreground-muted line-clamp-3">
+                        {item.summary}
+                      </p>
+                    )}
+
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-lg border border-white/[0.08] px-3 py-1.5 text-[12px] text-foreground-muted transition-colors hover:border-white/[0.16] hover:text-foreground"
+                    >
+                      원문 보기
+                      <ExternalLink size={11} />
+                    </a>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            {/* 페이지네이션 */}
+            {totalPages > 1 && (
+              <div className="mt-10 flex items-center justify-center gap-2">
+                <Link
+                  href={pageHref(category, page - 1)}
+                  aria-disabled={page <= 1}
+                  className={[
+                    'inline-flex h-9 w-9 items-center justify-center rounded-full border text-foreground-muted transition-colors',
+                    page <= 1
+                      ? 'pointer-events-none border-white/[0.04] text-foreground-subtle opacity-40'
+                      : 'border-white/[0.08] hover:border-white/[0.16] hover:text-foreground',
+                  ].join(' ')}
+                >
+                  <ChevronLeft size={15} />
                 </Link>
 
-                {item.summary && (
-                  <p className="mb-4 text-[13px] leading-[1.7] text-foreground-muted line-clamp-3">
-                    {item.summary}
-                  </p>
-                )}
-
-                <a
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 rounded-lg border border-white/[0.08] px-3 py-1.5 text-[12px] text-foreground-muted transition-colors hover:border-white/[0.16] hover:text-foreground"
-                >
-                  원문 보기
-                  <ExternalLink size={11} />
-                </a>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                    <Link
+                      key={p}
+                      href={pageHref(category, p)}
+                      className={[
+                        'inline-flex h-9 w-9 items-center justify-center rounded-full border text-[13px] font-medium transition-colors',
+                        p === page
+                          ? 'bg-white text-black border-white'
+                          : 'border-white/[0.08] text-foreground-muted hover:border-white/[0.16] hover:text-foreground',
+                      ].join(' ')}
+                    >
+                      {p}
+                    </Link>
+                  ))}
                 </div>
-              </article>
-            ))}
-          </div>
+
+                <Link
+                  href={pageHref(category, page + 1)}
+                  aria-disabled={page >= totalPages}
+                  className={[
+                    'inline-flex h-9 w-9 items-center justify-center rounded-full border text-foreground-muted transition-colors',
+                    page >= totalPages
+                      ? 'pointer-events-none border-white/[0.04] text-foreground-subtle opacity-40'
+                      : 'border-white/[0.08] hover:border-white/[0.16] hover:text-foreground',
+                  ].join(' ')}
+                >
+                  <ChevronRight size={15} />
+                </Link>
+              </div>
+            )}
+          </>
         )}
       </main>
       <GrainOverlay />
