@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
+from curl_cffi import requests
 from bs4 import BeautifulSoup
-from playwright.sync_api import sync_playwright, Page
 from supabase import create_client
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -16,7 +16,7 @@ SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_SERVICE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
 DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
 WEVITY_MAX_PAGES = int(os.environ.get("WEVITY_MAX_PAGES", "5"))
-REQUEST_SLEEP_SEC = float(os.environ.get("REQUEST_SLEEP_SEC", "1.2"))
+REQUEST_SLEEP_SEC = float(os.environ.get("REQUEST_SLEEP_SEC", "0.7"))
 
 CATEGORY_KEYWORDS: dict[str, list[str]] = {
     "ai": ["ai", "인공지능", "머신러닝", "딥러닝", "nlp", "챗봇", "gpt", "llm", "데이터", "비전"],
@@ -62,28 +62,27 @@ def parse_date(raw: str) -> Optional[str]:
     return None
 
 
-def fetch_html(page: Page, url: str) -> Optional[BeautifulSoup]:
+def fetch(url: str) -> Optional[BeautifulSoup]:
     try:
-        page.goto(url, wait_until="domcontentloaded", timeout=20000)
-        time.sleep(REQUEST_SLEEP_SEC)
-        return BeautifulSoup(page.content(), "html.parser")
+        r = requests.get(url, impersonate="chrome120", timeout=15)
+        r.raise_for_status()
+        return BeautifulSoup(r.text, "html.parser")
     except Exception as e:
         log.warning("fetch error %s: %s", url, e)
         return None
 
 
-def scrape_detail(page: Page, url: str) -> dict:
-    soup = fetch_html(page, url)
+def scrape_detail(url: str) -> dict:
+    soup = fetch(url)
     if not soup:
         return {}
 
     result: dict = {}
 
     for a in soup.select("a[href]"):
-        href = a.get("href", "")
         text = a.get_text(strip=True)
         if "홈페이지" in text or "공식" in text:
-            result["official_url"] = href
+            result["official_url"] = a.get("href", "")
             break
 
     img = soup.select_one(".view-thumb img, .thumb img, .contest-img img")
@@ -119,13 +118,13 @@ def scrape_detail(page: Page, url: str) -> dict:
     return result
 
 
-def scrape_wevity(page: Page) -> list[Contest]:
+def scrape_wevity() -> list[Contest]:
     items: list[Contest] = []
 
     for pg in range(1, WEVITY_MAX_PAGES + 1):
         url = WEVITY_LIST_URL.format(page=pg)
         log.info("scraping wevity page %d → %s", pg, url)
-        soup = fetch_html(page, url)
+        soup = fetch(url)
         if not soup:
             break
 
@@ -160,7 +159,8 @@ def scrape_wevity(page: Page) -> list[Contest]:
                 category=classify_category(title, organizer or ""),
             )
 
-            detail = scrape_detail(page, detail_url)
+            time.sleep(REQUEST_SLEEP_SEC)
+            detail = scrape_detail(detail_url)
             for k, v in detail.items():
                 setattr(contest, k, v)
 
@@ -169,6 +169,7 @@ def scrape_wevity(page: Page) -> list[Contest]:
             log.info("  [%s] %s", contest.category, contest.title[:60])
 
         log.info("page %d: %d items", pg, page_count)
+        time.sleep(REQUEST_SLEEP_SEC)
 
     return items
 
@@ -198,20 +199,7 @@ def upsert_contests(client, contests: list[Contest]) -> None:
 def main():
     log.info("=== Contest Scraper start (dry_run=%s) ===", DRY_RUN)
 
-    with sync_playwright() as pw:
-        browser = pw.chromium.launch(headless=True)
-        ctx = browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-            locale="ko-KR",
-            viewport={"width": 1280, "height": 800},
-        )
-        pg = ctx.new_page()
-
-        contests: list[Contest] = []
-        contests.extend(scrape_wevity(pg))
-
-        browser.close()
-
+    contests = scrape_wevity()
     log.info("total scraped: %d", len(contests))
 
     if DRY_RUN:
