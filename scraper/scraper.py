@@ -1,12 +1,12 @@
 import os
 import time
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
-import requests
 from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright, Page
 from supabase import create_client
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -16,7 +16,7 @@ SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_SERVICE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
 DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
 WEVITY_MAX_PAGES = int(os.environ.get("WEVITY_MAX_PAGES", "5"))
-REQUEST_SLEEP_SEC = float(os.environ.get("REQUEST_SLEEP_SEC", "0.7"))
+REQUEST_SLEEP_SEC = float(os.environ.get("REQUEST_SLEEP_SEC", "1.2"))
 
 CATEGORY_KEYWORDS: dict[str, list[str]] = {
     "ai": ["ai", "인공지능", "머신러닝", "딥러닝", "nlp", "챗봇", "gpt", "llm", "데이터", "비전"],
@@ -25,18 +25,7 @@ CATEGORY_KEYWORDS: dict[str, list[str]] = {
     "startup": ["창업", "스타트업", "사업계획", "비즈니스", "벤처"],
 }
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-    "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Referer": "https://www.wevity.com/",
-    "Connection": "keep-alive",
-    "Upgrade-Insecure-Requests": "1",
-}
-
 WEVITY_BASE = "https://www.wevity.com"
-# IT/SW 카테고리 목록 페이지 (cidx=18 → IT/소프트웨어)
 WEVITY_LIST_URL = f"{WEVITY_BASE}/?c=find&s=1&gub=1&cidx=18&cata=A&page={{page}}"
 
 
@@ -65,35 +54,31 @@ def classify_category(title: str, organizer: str = "") -> str:
 
 def parse_date(raw: str) -> Optional[str]:
     raw = raw.strip().replace(".", "-").replace("/", "-")
-    try:
-        return datetime.strptime(raw, "%Y-%m-%d").date().isoformat()
-    except ValueError:
-        pass
-    try:
-        return datetime.strptime(raw, "%y-%m-%d").date().isoformat()
-    except ValueError:
-        return None
+    for fmt in ("%Y-%m-%d", "%y-%m-%d"):
+        try:
+            return datetime.strptime(raw, fmt).date().isoformat()
+        except ValueError:
+            continue
+    return None
 
 
-def fetch(url: str) -> Optional[BeautifulSoup]:
+def fetch_html(page: Page, url: str) -> Optional[BeautifulSoup]:
     try:
-        r = requests.get(url, headers=HEADERS, timeout=15)
-        r.raise_for_status()
-        r.encoding = "utf-8"
-        return BeautifulSoup(r.text, "html.parser")
+        page.goto(url, wait_until="domcontentloaded", timeout=20000)
+        time.sleep(REQUEST_SLEEP_SEC)
+        return BeautifulSoup(page.content(), "html.parser")
     except Exception as e:
         log.warning("fetch error %s: %s", url, e)
         return None
 
 
-def scrape_wevity_detail(url: str) -> dict:
-    soup = fetch(url)
+def scrape_detail(page: Page, url: str) -> dict:
+    soup = fetch_html(page, url)
     if not soup:
         return {}
 
     result: dict = {}
 
-    # 공식 홈페이지 링크
     for a in soup.select("a[href]"):
         href = a.get("href", "")
         text = a.get_text(strip=True)
@@ -101,38 +86,31 @@ def scrape_wevity_detail(url: str) -> dict:
             result["official_url"] = href
             break
 
-    # 썸네일
     img = soup.select_one(".view-thumb img, .thumb img, .contest-img img")
     if img:
         src = img.get("src", "")
         result["thumbnail_url"] = src if src.startswith("http") else WEVITY_BASE + src
 
-    # 기간 파싱 (접수기간)
     for row in soup.select("dl dt, table th, .info-list li"):
         text = row.get_text(strip=True)
         if "접수" in text or "기간" in text:
             sibling = row.find_next_sibling()
             if sibling:
-                period = sibling.get_text(strip=True)
-                parts = period.replace(" ", "").split("~")
+                parts = sibling.get_text(strip=True).replace(" ", "").split("~")
                 if len(parts) == 2:
                     result["start_date"] = parse_date(parts[0])
                     result["end_date"] = parse_date(parts[1])
             break
 
-    # 시상내역
     for row in soup.select("dl dt, table th, .info-list li"):
-        text = row.get_text(strip=True)
-        if "시상" in text or "상금" in text or "혜택" in text:
+        if any(k in row.get_text(strip=True) for k in ("시상", "상금", "혜택")):
             sibling = row.find_next_sibling()
             if sibling:
                 result["prize"] = sibling.get_text(strip=True)[:200]
             break
 
-    # 지원자격
     for row in soup.select("dl dt, table th, .info-list li"):
-        text = row.get_text(strip=True)
-        if "자격" in text or "대상" in text:
+        if any(k in row.get_text(strip=True) for k in ("자격", "대상")):
             sibling = row.find_next_sibling()
             if sibling:
                 result["target"] = sibling.get_text(strip=True)[:200]
@@ -141,23 +119,21 @@ def scrape_wevity_detail(url: str) -> dict:
     return result
 
 
-def scrape_wevity() -> list[Contest]:
+def scrape_wevity(page: Page) -> list[Contest]:
     items: list[Contest] = []
 
-    for page in range(1, WEVITY_MAX_PAGES + 1):
-        url = WEVITY_LIST_URL.format(page=page)
-        log.info("scraping wevity page %d → %s", page, url)
-        soup = fetch(url)
+    for pg in range(1, WEVITY_MAX_PAGES + 1):
+        url = WEVITY_LIST_URL.format(page=pg)
+        log.info("scraping wevity page %d → %s", pg, url)
+        soup = fetch_html(page, url)
         if not soup:
             break
 
         rows = soup.select("ul.list li, .contest-list li, .find-list li")
         if not rows:
-            # 구조 대안
             rows = soup.select("div.list-wrap .item, .board-list tr")
-
         if not rows:
-            log.warning("page %d: no rows found, stopping", page)
+            log.warning("page %d: no rows found, stopping", pg)
             break
 
         page_count = 0
@@ -184,8 +160,7 @@ def scrape_wevity() -> list[Contest]:
                 category=classify_category(title, organizer or ""),
             )
 
-            time.sleep(REQUEST_SLEEP_SEC)
-            detail = scrape_wevity_detail(detail_url)
+            detail = scrape_detail(page, detail_url)
             for k, v in detail.items():
                 setattr(contest, k, v)
 
@@ -193,8 +168,7 @@ def scrape_wevity() -> list[Contest]:
             page_count += 1
             log.info("  [%s] %s", contest.category, contest.title[:60])
 
-        log.info("page %d: %d items", page, page_count)
-        time.sleep(REQUEST_SLEEP_SEC)
+        log.info("page %d: %d items", pg, page_count)
 
     return items
 
@@ -217,18 +191,26 @@ def upsert_contests(client, contests: list[Contest]) -> None:
         }
         for c in contests
     ]
-
-    # wevity_url 기준 upsert (중복 방지)
-    result = client.table("contests").upsert(rows, on_conflict="wevity_url").execute()
+    client.table("contests").upsert(rows, on_conflict="wevity_url").execute()
     log.info("upserted %d rows", len(rows))
-    return result
 
 
 def main():
     log.info("=== Contest Scraper start (dry_run=%s) ===", DRY_RUN)
 
-    contests: list[Contest] = []
-    contests.extend(scrape_wevity())
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(headless=True)
+        ctx = browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+            locale="ko-KR",
+            viewport={"width": 1280, "height": 800},
+        )
+        pg = ctx.new_page()
+
+        contests: list[Contest] = []
+        contests.extend(scrape_wevity(pg))
+
+        browser.close()
 
     log.info("total scraped: %d", len(contests))
 

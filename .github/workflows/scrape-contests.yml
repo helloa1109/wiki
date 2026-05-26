@@ -28,6 +28,8 @@ jobs:
 
       - run: pip install -r scraper/requirements.txt
 
+      - run: playwright install chromium --with-deps
+
       - name: Run scraper
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
