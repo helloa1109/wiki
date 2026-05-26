@@ -20,6 +20,7 @@ type NewsItem = {
   source: string | null
   categories: string[]
   published_at: string | null
+  image_url: string | null
 }
 
 const ALL_CATEGORIES = ['AI', '빅테크', '스타트업', '신기술', '정책/규제', '리서치']
@@ -111,8 +112,18 @@ export default async function NewsPage({
             {news.map((item) => (
               <article
                 key={item.id}
-                className="group rounded-2xl border border-white/[0.08] p-5 transition-colors hover:border-white/[0.14]"
+                className="group rounded-2xl border border-white/[0.08] overflow-hidden transition-colors hover:border-white/[0.14]"
               >
+                {item.image_url && (
+                  <Link href={`/news/${item.id}`}>
+                    <img
+                      src={item.image_url}
+                      alt={item.title}
+                      className="w-full h-44 object-cover"
+                    />
+                  </Link>
+                )}
+                <div className="p-5">
                 <div className="mb-3 flex flex-wrap items-center gap-2">
                   {item.categories?.map((cat) => (
                     <span
@@ -156,6 +167,7 @@ export default async function NewsPage({
                   원문 보기
                   <ExternalLink size={11} />
                 </a>
+                </div>
               </article>
             ))}
           </div>

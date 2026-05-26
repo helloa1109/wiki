@@ -33,6 +33,7 @@ export default async function NewsDetailPage({
     source: string | null
     categories: string[]
     published_at: string | null
+    image_url: string | null
   }
 
   const { data: item } = await supabase
@@ -56,6 +57,15 @@ export default async function NewsDetailPage({
           <ArrowLeft size={14} />
           News
         </Link>
+
+        {/* 대표 이미지 */}
+        {item.image_url && (
+          <img
+            src={item.image_url}
+            alt={item.title}
+            className="mb-8 w-full rounded-2xl object-cover h-56"
+          />
+        )}
 
         {/* 카테고리 + 출처 */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
