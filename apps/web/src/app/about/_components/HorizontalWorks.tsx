@@ -4,11 +4,11 @@ import { useEffect, useRef } from 'react'
 import styles from './HorizontalWorks.module.css'
 
 const works = [
-  { num: '01', title: 'Liquid Bloom',     tag: 'Generative · Blender · 2026', art: styles.art1 },
-  { num: '02', title: 'Tidal Garden',     tag: 'WebGL · TouchDesigner · 2025', art: styles.art2 },
-  { num: '03', title: 'Coral Drift',      tag: 'Midjourney · Runway · 2025',   art: styles.art3 },
-  { num: '04', title: 'Aurora Spin',      tag: 'Shader · GLSL · 2025',         art: styles.art4 },
-  { num: '05', title: 'Meadow Sequence',  tag: 'Blender · Nano Banana · 2024', art: styles.art5 },
+  { num: '01', title: 'Liquid Bloom',    tag: 'Generative · Blender · 2026', art: styles.art1 },
+  { num: '02', title: 'Tidal Garden',    tag: 'WebGL · TouchDesigner · 2025', art: styles.art2 },
+  { num: '03', title: 'Coral Drift',     tag: 'Midjourney · Runway · 2025',   art: styles.art3 },
+  { num: '04', title: 'Aurora Spin',     tag: 'Shader · GLSL · 2025',         art: styles.art4 },
+  { num: '05', title: 'Meadow Sequence', tag: 'Blender · Nano Banana · 2024', art: styles.art5 },
 ]
 
 export function HorizontalWorks() {
@@ -28,18 +28,16 @@ export function HorizontalWorks() {
     const progressBar = progressRef.current
     if (!pin || !track) return
 
-    let gsapInstance: typeof import('gsap')['default'] | null = null
-    let ScrollTriggerInstance: typeof import('gsap/ScrollTrigger')['ScrollTrigger'] | null = null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let ScrollTriggerRef: any = null
 
-    async function init() {
+    const setup = async () => {
       const { default: gsap } = await import('gsap')
       const { ScrollTrigger } = await import('gsap/ScrollTrigger')
-
       gsap.registerPlugin(ScrollTrigger)
-      gsapInstance = gsap
-      ScrollTriggerInstance = ScrollTrigger
+      ScrollTriggerRef = ScrollTrigger
 
-      const getDistance = () => Math.max(0, track!.scrollWidth - window.innerWidth)
+      const getDistance = () => Math.max(0, track.scrollWidth - window.innerWidth)
 
       gsap.to(track, {
         x: () => -getDistance(),
@@ -58,15 +56,14 @@ export function HorizontalWorks() {
         },
       })
 
-      window.addEventListener('load', () =>
-        setTimeout(() => ScrollTrigger.refresh(), 200)
-      )
+      // React 렌더 후 레이아웃이 완전히 정착될 때까지 기다렸다가 refresh
+      setTimeout(() => ScrollTrigger.refresh(), 300)
     }
 
-    init()
+    setup()
 
     return () => {
-      ScrollTriggerInstance?.getAll().forEach((st) => st.kill())
+      ScrollTriggerRef?.getAll().forEach((st: { kill: () => void }) => st.kill())
     }
   }, [])
 

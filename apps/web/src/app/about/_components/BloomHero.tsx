@@ -182,17 +182,15 @@ export function BloomHero() {
     const clock = new THREE.Clock()
 
     function onResize() {
-      if (!renderer || !canvas) return
-      const w = canvas.offsetWidth
-      const h = canvas.offsetHeight
-      camera.aspect = w / h
+      if (!renderer) return
+      camera.aspect = window.innerWidth / window.innerHeight
       camera.updateProjectionMatrix()
-      renderer.setSize(w, h)
+      renderer.setSize(window.innerWidth, window.innerHeight)
     }
 
     try {
       scene = new THREE.Scene()
-      camera = new THREE.PerspectiveCamera(45, canvas.offsetWidth / canvas.offsetHeight, 0.1, 100)
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100)
       camera.position.set(0, 0, 13)
 
       renderer = new THREE.WebGLRenderer({
@@ -201,7 +199,7 @@ export function BloomHero() {
         alpha: true,
         powerPreference: 'high-performance',
       })
-      renderer.setSize(canvas.offsetWidth, canvas.offsetHeight)
+      renderer.setSize(window.innerWidth, window.innerHeight)
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2))
       renderer.setClearColor(0x000000, 0)
 

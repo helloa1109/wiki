@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BLOOM — Living Garden</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #e6e5ee;
+  --bg-2: #f0eef5;
+  --text: #1a1a2e;
+  --text-soft: #6b6a7f;
+  --accent: #ff7a8a;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { overflow-x: hidden; }
+
+html, body {
+  background: var(--bg);
+  font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text);
+  cursor: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background: radial-gradient(ellipse at 30% 20%, #f5f2ff 0%, #e6e5ee 60%, #d8d7e2 100%);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  transition: opacity 0.4s ease-out;
+}
+
+.vignette {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 2;
+  background: radial-gradient(ellipse at 50% 40%, transparent 0%, rgba(216, 215, 226, 0.4) 100%);
+}
+
+.grain {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 100;
+  opacity: 0.08; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 50; padding: 2rem 3rem;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.9rem; font-weight: 500;
+  pointer-events: none;
+}
+.nav > * { pointer-events: auto; }
+.nav-left { display: flex; gap: 2rem; align-items: center; }
+
+.nav-logo {
+  width: 28px; height: 28px;
+  background: conic-gradient(from 0deg, #ff9ac4, #b69eff, #a0bfff, #b0e8c8, #ffc0a0, #ff9ac4);
+  border-radius: 50%;
+  filter: blur(1px);
+  animation: rotate 24s linear infinite;
+  position: relative;
+}
+.nav-logo::after {
+  content: '';
+  position: absolute; inset: 4px;
+  background: white; border-radius: 50%; opacity: 0.4;
+}
+@keyframes rotate { to { transform: rotate(360deg); } }
+
+.nav a {
+  color: var(--text); text-decoration: none;
+  position: relative; padding: 0.4rem 0;
+  letter-spacing: 0.01em;
+}
+.nav a::after {
+  content: '';
+  position: absolute; left: 0; bottom: 0;
+  width: 100%; height: 1px; background: currentColor;
+  transform: scaleX(0); transform-origin: right;
+  transition: transform 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.nav a:hover::after { transform: scaleX(1); transform-origin: left; }
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.04),
+    0 8px 32px rgba(60, 60, 100, 0.06);
+  border-radius: 100px;
+  display: inline-flex; align-items: center; gap: 0.6rem;
+  cursor: none;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease;
+  color: var(--text); font-family: inherit; font-weight: 500;
+}
+.glass-pill:hover { background: rgba(255, 255, 255, 0.75); }
+.nav-cta { padding: 0.7rem 0.7rem 0.7rem 1.4rem; font-size: 0.9rem; }
+
+.arrow {
+  width: 26px; height: 26px;
+  background: var(--text); color: white;
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.8rem;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nav-cta:hover .arrow, .cta:hover .arrow { transform: rotate(-45deg); }
+
+.hero-section {
+  position: relative;
+  min-height: 100dvh;
+  display: flex; align-items: flex-end;
+  padding: 6rem 3rem 4rem;
+  z-index: 5;
+}
+
+.hero {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  align-items: end;
+  gap: 4rem;
+}
+
+.brand-wrap { position: relative; line-height: 0.82; user-select: none; }
+
+.brand-letters {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(5.5rem, 17vw, 21rem);
+  letter-spacing: -0.05em;
+  font-variation-settings: "opsz" 144, "SOFT" 100;
+}
+
+.brand-letters .letter-wrap {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(60px) scale(0.92);
+  transition: opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.loaded .brand-letters .letter-wrap { opacity: 1; transform: translateY(0) scale(1); }
+
+.brand-letters .letter {
+  display: inline-block; position: relative;
+  background: linear-gradient(
+    175deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(220, 220, 255, 0.85) 40%,
+    rgba(255, 200, 230, 0.85) 75%,
+    rgba(255, 230, 200, 0.95) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter:
+    drop-shadow(0 2px 0 rgba(255, 255, 255, 0.8))
+    drop-shadow(0 8px 24px rgba(180, 160, 220, 0.4))
+    drop-shadow(0 1px 1px rgba(255, 255, 255, 0.6));
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.loaded .brand-letters .letter-wrap:nth-child(1) { transition-delay: 0.3s; }
+.loaded .brand-letters .letter-wrap:nth-child(2) { transition-delay: 0.38s; }
+.loaded .brand-letters .letter-wrap:nth-child(3) { transition-delay: 0.46s; }
+.loaded .brand-letters .letter-wrap:nth-child(4) { transition-delay: 0.54s; }
+.loaded .brand-letters .letter-wrap:nth-child(5) { transition-delay: 0.62s; }
+
+.hero-right {
+  display: flex; flex-direction: column;
+  gap: 1.5rem;
+  align-items: flex-end; text-align: right;
+  padding-bottom: 1rem;
+}
+
+.tagline {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(1.6rem, 2.4vw, 2.4rem);
+  letter-spacing: -0.025em;
+  color: var(--text);
+  font-variation-settings: "opsz" 144;
+}
+
+.description {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  max-width: 34ch;
+  color: var(--text-soft);
+}
+.description strong { color: var(--text); font-weight: 600; }
+
+.cta { padding: 0.85rem 0.85rem 0.85rem 1.6rem; font-size: 0.95rem; margin-top: 0.4rem; }
+
+.bottom-info {
+  position: absolute;
+  bottom: 1.8rem; left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem; letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text); z-index: 11;
+  display: flex; align-items: center; gap: 0.8rem;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  padding: 0.7rem 1.3rem;
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 8px 32px rgba(60, 60, 100, 0.06);
+  font-weight: 500;
+}
+
+.live-dot {
+  width: 7px; height: 7px;
+  background: #44d18a; border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(68, 209, 138, 0.5); }
+  50% { box-shadow: 0 0 0 10px rgba(68, 209, 138, 0); }
+}
+
+.loader {
+  position: fixed; inset: 0;
+  background: var(--bg); z-index: 1000;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 2rem;
+  transition: opacity 1s cubic-bezier(0.65, 0, 0.35, 1), visibility 1s;
+}
+.loader.hidden { opacity: 0; visibility: hidden; }
+.loader-text {
+  font-family: 'Fraunces', serif; font-style: italic;
+  font-size: 1.6rem; color: var(--text-soft);
+  letter-spacing: -0.02em;
+}
+.loader-bar {
+  width: 220px; height: 1px;
+  background: rgba(0, 0, 0, 0.1);
+  overflow: hidden; position: relative;
+}
+.loader-bar::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--text);
+  transform: translateX(-100%);
+  animation: loadBar 1.6s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+@keyframes loadBar { to { transform: translateX(0); } }
+
+[data-reveal] {
+  opacity: 0; transform: translateY(40px);
+  transition: opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.loaded [data-reveal] { opacity: 1; transform: translateY(0); }
+.loaded [data-reveal="2"] { transition-delay: 0.1s; }
+.loaded [data-reveal="3"] { transition-delay: 0.25s; }
+.loaded [data-reveal="4"] { transition-delay: 0.4s; }
+.loaded [data-reveal="5"] { transition-delay: 0.55s; }
+.loaded [data-reveal="6"] { transition-delay: 0.7s; }
+
+.cursor-dot, .cursor-ring {
+  position: fixed; pointer-events: none;
+  z-index: 9999; border-radius: 50%;
+  top: 0; left: 0; will-change: transform;
+  mix-blend-mode: difference;
+}
+.cursor-dot {
+  width: 6px; height: 6px; background: white;
+  margin-left: -3px; margin-top: -3px;
+}
+.cursor-ring {
+  width: 36px; height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  margin-left: -18px; margin-top: -18px;
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              height 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              margin 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cursor-ring.hover {
+  width: 64px; height: 64px;
+  margin-left: -32px; margin-top: -32px;
+}
+
+/* ===== Horizontal Scroll ===== */
+.horizontal-section {
+  position: relative;
+  z-index: 5;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(20, 18, 36, 0.85) 8%,
+    #14121e 22%,
+    #0d0c18 78%,
+    rgba(13, 12, 24, 0.85) 92%,
+    transparent 100%);
+}
+.horizontal-pin {
+  position: relative; height: 100vh;
+  overflow: hidden; display: flex; align-items: center;
+}
+.horizontal-header {
+  position: absolute; top: 12vh; left: 3rem; right: 3rem;
+  z-index: 10;
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: 2rem; pointer-events: none;
+}
+.h-eyebrow {
+  font-size: 0.7rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: rgba(255,255,255,0.55);
+  display: flex; align-items: center; gap: 0.8rem;
+}
+.h-eyebrow::before { content: ''; width: 28px; height: 1px; background: currentColor; }
+.h-title {
+  font-family: 'Fraunces', serif; font-style: italic;
+  font-weight: 300; font-size: clamp(1.6rem, 2.4vw, 2.4rem);
+  color: white; letter-spacing: -0.025em;
+  max-width: 22ch; line-height: 1.15; margin-top: 0.6rem;
+}
+.h-side {
+  font-size: 0.78rem; color: rgba(255,255,255,0.45);
+  text-align: right; letter-spacing: 0.02em;
+}
+.horizontal-track {
+  display: flex; gap: 2.5rem;
+  padding: 0 6vw; will-change: transform; align-items: center;
+}
+.h-card {
+  flex: 0 0 auto;
+  width: 38vw; max-width: 580px; min-width: 320px;
+  height: 62vh; min-height: 460px; max-height: 700px;
+  border-radius: 28px; position: relative;
+  overflow: hidden; cursor: none; background: #0d0c18;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+}
+.h-card:hover { transform: translateY(-10px); }
+.h-card-art {
+  position: absolute; inset: -15%;
+  z-index: 1;
+  transition: transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.h-card:hover .h-card-art { transform: scale(1.08); }
+.h-card::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.55) 100%);
+  z-index: 2; pointer-events: none;
+}
+.h-card-meta {
+  position: absolute; bottom: 2rem; left: 2rem; right: 2rem;
+  z-index: 3; color: white;
+}
+.h-card-num {
+  font-size: 0.7rem; letter-spacing: 0.22em;
+  text-transform: uppercase; opacity: 0.55;
+  margin-bottom: 0.9rem;
+}
+.h-card-title {
+  font-family: 'Fraunces', serif; font-style: italic;
+  font-weight: 300; font-size: clamp(1.6rem, 2.4vw, 2.2rem);
+  letter-spacing: -0.025em; line-height: 1; margin-bottom: 0.6rem;
+}
+.h-card-tag { font-size: 0.78rem; opacity: 0.65; }
+
+.art-1 {
+  background:
+    radial-gradient(circle at 30% 30%, #ff9ac4 0%, transparent 50%),
+    radial-gradient(circle at 70% 70%, #b69eff 0%, transparent 50%),
+    radial-gradient(circle at 50% 55%, #ff7a8a 0%, transparent 55%),
+    #2a1a3a;
+  filter: blur(18px) saturate(140%);
+  animation: artFloatA 18s ease-in-out infinite;
+}
+.art-2 {
+  background:
+    radial-gradient(circle at 60% 30%, #c8ffe5 0%, transparent 55%),
+    radial-gradient(circle at 30% 70%, #a0c8ff 0%, transparent 55%),
+    radial-gradient(circle at 80% 80%, #80d0e8 0%, transparent 50%),
+    #16263a;
+  filter: blur(20px) saturate(150%);
+  animation: artFloatB 22s ease-in-out infinite;
+}
+.art-3 {
+  background:
+    radial-gradient(circle at 25% 60%, #ffc0a0 0%, transparent 45%),
+    radial-gradient(circle at 75% 35%, #ff90b8 0%, transparent 50%),
+    radial-gradient(circle at 50% 80%, #ff7a8a 0%, transparent 50%),
+    #3a1a26;
+  filter: blur(16px) saturate(160%);
+  animation: artFloatA 20s ease-in-out infinite reverse;
+}
+.art-4 {
+  background: conic-gradient(from 45deg at 50% 50%, #b69eff, #ff9ac4, #a0bfff, #d4b0ff, #b69eff);
+  filter: blur(28px) saturate(130%);
+  animation: artRotate 30s linear infinite;
+}
+.art-5 {
+  background:
+    radial-gradient(circle at 40% 40%, #b0e8c8 0%, transparent 50%),
+    radial-gradient(circle at 70% 65%, #ffe0a0 0%, transparent 50%),
+    radial-gradient(circle at 20% 80%, #c8ffe5 0%, transparent 45%),
+    #163a26;
+  filter: blur(20px) saturate(140%);
+  animation: artFloatB 25s ease-in-out infinite reverse;
+}
+
+@keyframes artFloatA {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-3%, 4%) scale(1.08); }
+  66% { transform: translate(4%, -3%) scale(0.95); }
+}
+@keyframes artFloatB {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(3%, -4%) scale(1.06); }
+}
+@keyframes artRotate {
+  from { transform: rotate(0deg) scale(1.15); }
+  to { transform: rotate(360deg) scale(1.15); }
+}
+
+.h-progress {
+  position: absolute; bottom: 4rem; left: 50%;
+  transform: translateX(-50%); width: 240px; height: 2px;
+  background: rgba(255,255,255,0.12); z-index: 20;
+  border-radius: 2px; overflow: hidden;
+}
+.h-progress-bar { height: 100%; width: 0%; background: white; }
+.h-hint {
+  position: absolute; bottom: 5.4rem; left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.66rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: rgba(255,255,255,0.5);
+  z-index: 20; white-space: nowrap;
+}
+
+.outro {
+  position: relative; min-height: 80vh;
+  background: linear-gradient(180deg, #0d0c18 0%, #050410 100%);
+  color: white; z-index: 5;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 6rem 3rem; text-align: center; gap: 2rem;
+}
+.outro h2 {
+  font-family: 'Fraunces', serif; font-style: italic;
+  font-weight: 300; font-size: clamp(2.4rem, 5vw, 4.6rem);
+  letter-spacing: -0.03em; max-width: 16ch;
+  line-height: 1.05;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.95) 0%,
+    rgba(180,160,220,0.8) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.outro p { color: rgba(255,255,255,0.5); font-size: 0.95rem; max-width: 38ch; line-height: 1.65; }
+.outro .glass-pill {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+.outro .glass-pill .arrow { background: white; color: #0d0c18; }
+
+@media (max-width: 768px) {
+  body { cursor: auto; }
+  .cursor-dot, .cursor-ring { display: none; }
+  .nav { padding: 1.2rem; }
+  .hero-section { padding: 5rem 1.2rem 5rem; }
+  .nav-left { gap: 1.2rem; font-size: 0.85rem; }
+  .nav-cta { padding: 0.55rem 0.55rem 0.55rem 1rem; font-size: 0.8rem; }
+  .nav-cta .arrow { width: 22px; height: 22px; }
+  .hero { grid-template-columns: 1fr; gap: 1.5rem; }
+  .hero-right { align-items: flex-start; text-align: left; }
+  .brand-letters { font-size: 24vw; }
+  .bottom-info { font-size: 0.6rem; padding: 0.55rem 1rem; bottom: 1.2rem; }
+
+  .horizontal-pin { height: auto; min-height: auto; padding: 6rem 0 4rem; }
+  .horizontal-header {
+    position: relative; top: auto; left: auto; right: auto;
+    padding: 0 1.2rem 2rem;
+    flex-direction: column; align-items: flex-start;
+  }
+  .h-side { text-align: left; }
+  .horizontal-track {
+    flex-direction: column;
+    padding: 0 1.2rem; gap: 1.5rem;
+    transform: none !important;
+  }
+  .h-card { width: 100%; height: 60vh; min-height: 380px; max-width: none; }
+  .h-progress, .h-hint { display: none; }
+  .outro { padding: 4rem 1.2rem; min-height: auto; }
+}
+</style>
+</head>
+<body>
+
+<div class="loader" id="loader">
+  <div class="loader-text"><em>Blooming…</em></div>
+  <div class="loader-bar"></div>
+</div>
+
+<canvas id="bg-canvas"></canvas>
+<div class="vignette"></div>
+<div class="grain"></div>
+
+<nav class="nav">
+  <div class="nav-left" data-reveal>
+    <div class="nav-logo"></div>
+    <a href="#" data-hover>Work</a>
+    <a href="#" data-hover>About</a>
+    <a href="#" data-hover>Contact</a>
+  </div>
+  <button class="glass-pill nav-cta" data-hover data-magnetic data-reveal="2">
+    Get Started
+    <span class="arrow">→</span>
+  </button>
+</nav>
+
+<section class="hero-section">
+  <div class="hero">
+    <div class="brand-wrap">
+      <h1 class="brand-letters" aria-label="BLOOM">
+        <span class="letter-wrap"><span class="letter">B</span></span><span class="letter-wrap"><span class="letter">L</span></span><span class="letter-wrap"><span class="letter">O</span></span><span class="letter-wrap"><span class="letter">O</span></span><span class="letter-wrap"><span class="letter">M</span></span>
+      </h1>
+    </div>
+    <div class="hero-right">
+      <p class="tagline" data-reveal="4"><em>Enter the living garden.</em></p>
+      <p class="description" data-reveal="5">
+        <strong>BLOOM</strong>은 3D와 AI 워크플로우로 살아 숨쉬는
+        미디어 아트를 만드는 디자인 스튜디오입니다.
+        마우스를 따라 움직이는 꽃들과 함께 미래로 들어오세요.
+      </p>
+      <button class="glass-pill cta" data-hover data-magnetic data-reveal="6">
+        Get Started
+        <span class="arrow">→</span>
+      </button>
+    </div>
+  </div>
+  <div class="bottom-info" data-reveal="6">
+    <span class="live-dot"></span>
+    <span>Scroll · 아래로 스크롤하세요</span>
+  </div>
+</section>
+
+<section class="horizontal-section">
+  <div class="horizontal-pin">
+    <div class="horizontal-header">
+      <div>
+        <div class="h-eyebrow">Selected Works · 05</div>
+        <div class="h-title"><em>Recent fragments<br>from the garden.</em></div>
+      </div>
+      <div class="h-side">
+        Scroll to explore<br>
+        <span style="opacity:0.6">↓ becomes →</span>
+      </div>
+    </div>
+
+    <div class="horizontal-track">
+      <article class="h-card" data-hover>
+        <div class="h-card-art art-1"></div>
+        <div class="h-card-meta">
+          <div class="h-card-num">01 / 05</div>
+          <div class="h-card-title"><em>Liquid Bloom</em></div>
+          <div class="h-card-tag">Generative · Blender · 2026</div>
+        </div>
+      </article>
+      <article class="h-card" data-hover>
+        <div class="h-card-art art-2"></div>
+        <div class="h-card-meta">
+          <div class="h-card-num">02 / 05</div>
+          <div class="h-card-title"><em>Tidal Garden</em></div>
+          <div class="h-card-tag">WebGL · TouchDesigner · 2025</div>
+        </div>
+      </article>
+      <article class="h-card" data-hover>
+        <div class="h-card-art art-3"></div>
+        <div class="h-card-meta">
+          <div class="h-card-num">03 / 05</div>
+          <div class="h-card-title"><em>Coral Drift</em></div>
+          <div class="h-card-tag">Midjourney · Runway · 2025</div>
+        </div>
+      </article>
+      <article class="h-card" data-hover>
+        <div class="h-card-art art-4"></div>
+        <div class="h-card-meta">
+          <div class="h-card-num">04 / 05</div>
+          <div class="h-card-title"><em>Aurora Spin</em></div>
+          <div class="h-card-tag">Shader · GLSL · 2025</div>
+        </div>
+      </article>
+      <article class="h-card" data-hover>
+        <div class="h-card-art art-5"></div>
+        <div class="h-card-meta">
+          <div class="h-card-num">05 / 05</div>
+          <div class="h-card-title"><em>Meadow Sequence</em></div>
+          <div class="h-card-tag">Blender · Nano Banana · 2024</div>
+        </div>
+      </article>
+    </div>
+
+    <div class="h-hint">Horizontal scroll</div>
+    <div class="h-progress"><div class="h-progress-bar" id="h-progress-bar"></div></div>
+  </div>
+</section>
+
+<section class="outro">
+  <h2><em>More works,<br>still blooming.</em></h2>
+  <p>가로 스크롤이 끝나면 다시 평범한 세로 스크롤로 돌아옵니다.</p>
+  <button class="glass-pill cta" data-hover data-magnetic>
+    See full archive
+    <span class="arrow">→</span>
+  </button>
+</section>
+
+<div class="cursor-dot" id="cursor-dot"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<script>
+const __hideLoader = () => {
+  const l = document.getElementById('loader');
+  if (l) l.classList.add('hidden');
+  document.body.classList.add('loaded');
+};
+const __loaderTimeout = setTimeout(__hideLoader, 4500);
+window.addEventListener('error', (e) => console.error('[BLOOM]', e.message));
+</script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"
+  onerror="this.onerror=null;this.src='https://unpkg.com/three@0.160.0/build/three.min.js'"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"
+  onerror="this.onerror=null;this.src='https://unpkg.com/gsap@3.12.5/dist/gsap.min.js'"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"
+  onerror="this.onerror=null;this.src='https://unpkg.com/gsap@3.12.5/dist/ScrollTrigger.min.js'"></script>
+<script>
+const isMobile = window.matchMedia('(max-width: 768px)').matches ||
+                 /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+try {
+
+if (typeof THREE === 'undefined') throw new Error('Three.js failed to load');
+
+const canvas = document.getElementById('bg-canvas');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 0, 13);
+
+const renderer = new THREE.WebGLRenderer({
+  canvas, antialias: !isMobile, alpha: true,
+  powerPreference: 'high-performance'
+});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
+renderer.setClearColor(0x000000, 0);
+
+const vertexShader = `
+  uniform float uTime;
+  uniform float uSeed;
+  uniform float uPetalCount;
+  uniform float uPetalAmplitude;
+  uniform float uFuzziness;
+
+  varying vec3 vNormal;
+  varying vec3 vPos;
+  varying float vDisplacement;
+  varying vec3 vWorldPos;
+
+  vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
+  vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
+
+  float snoise(vec3 v){
+    const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+    const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+    vec3 i = floor(v + dot(v, C.yyy));
+    vec3 x0 = v - i + dot(i, C.xxx);
+    vec3 g = step(x0.yzx, x0.xyz);
+    vec3 l = 1.0 - g;
+    vec3 i1 = min(g.xyz, l.zxy);
+    vec3 i2 = max(g.xyz, l.zxy);
+    vec3 x1 = x0 - i1 + 1.0 * C.xxx;
+    vec3 x2 = x0 - i2 + 2.0 * C.xxx;
+    vec3 x3 = x0 - 1. + 3.0 * C.xxx;
+    i = mod(i, 289.0);
+    vec4 p = permute(permute(permute(
+              i.z + vec4(0.0, i1.z, i2.z, 1.0))
+            + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+            + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+    float n_ = 1.0/7.0;
+    vec3 ns = n_ * D.wyz - D.xzx;
+    vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+    vec4 x_ = floor(j * ns.z);
+    vec4 y_ = floor(j - 7.0 * x_);
+    vec4 x = x_ * ns.x + ns.yyyy;
+    vec4 y = y_ * ns.x + ns.yyyy;
+    vec4 h = 1.0 - abs(x) - abs(y);
+    vec4 b0 = vec4(x.xy, y.xy);
+    vec4 b1 = vec4(x.zw, y.zw);
+    vec4 s0 = floor(b0)*2.0 + 1.0;
+    vec4 s1 = floor(b1)*2.0 + 1.0;
+    vec4 sh = -step(h, vec4(0.0));
+    vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
+    vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
+    vec3 p0 = vec3(a0.xy, h.x);
+    vec3 p1 = vec3(a0.zw, h.y);
+    vec3 p2 = vec3(a1.xy, h.z);
+    vec3 p3 = vec3(a1.zw, h.w);
+    vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
+    p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+    vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+    m = m * m;
+    return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+  }
+
+  void main() {
+    vec3 n = normalize(position);
+    float theta = atan(n.x, n.z);
+    float petals = sin(theta * uPetalCount + uSeed * 6.28) * 0.5 + 0.5;
+    petals = pow(petals, 0.6);
+    float band = 1.0 - pow(abs(n.y), 1.4);
+
+    vec3 noiseInput = position * 2.2 + vec3(uSeed * 10.0) + vec3(0.0, uTime * 0.08, 0.0);
+    float fuzz = snoise(noiseInput) * uFuzziness;
+    float breath = sin(uTime * 0.7 + uSeed * 6.28) * 0.035 + 1.0;
+
+    float displacement = (petals * band * uPetalAmplitude) + fuzz;
+    vec3 pos = n * (1.0 + displacement) * breath;
+
+    vDisplacement = displacement;
+    vPos = pos;
+    vNormal = normalize(normalMatrix * normalize(pos));
+    vec4 worldPos = modelMatrix * vec4(pos, 1.0);
+    vWorldPos = worldPos.xyz;
+    gl_Position = projectionMatrix * viewMatrix * worldPos;
+  }
+`;
+
+const fragmentShader = `
+  uniform float uTime;
+  uniform vec3 uColor1;
+  uniform vec3 uColor2;
+  uniform vec3 uColorTip;
+  uniform vec3 uMouseWorld;
+
+  varying vec3 vNormal;
+  varying vec3 vPos;
+  varying float vDisplacement;
+  varying vec3 vWorldPos;
+
+  void main() {
+    float gradT = clamp((vPos.y + 1.0) * 0.5, 0.0, 1.0);
+    vec3 baseColor = mix(uColor1, uColor2, gradT);
+    baseColor = mix(baseColor, uColorTip, smoothstep(0.04, 0.28, vDisplacement));
+
+    vec3 viewDir = normalize(cameraPosition - vWorldPos);
+    float fresnel = pow(1.0 - max(dot(normalize(vNormal), viewDir), 0.0), 2.2);
+
+    vec3 lightDir = normalize(vec3(0.4, 0.8, 0.5));
+    float ndotl = max(dot(normalize(vNormal), lightDir), 0.0);
+    float diffuse = ndotl * 0.45 + 0.65;
+
+    vec3 fillDir = normalize(vec3(-0.3, -0.5, 0.7));
+    float fill = max(dot(normalize(vNormal), fillDir), 0.0) * 0.25;
+
+    float dM = length(vWorldPos - uMouseWorld);
+    float mouseGlow = exp(-dM * 0.45) * 0.35;
+
+    vec3 color = baseColor * diffuse + baseColor * fill;
+    color += fresnel * mix(uColorTip, vec3(1.0), 0.3) * 0.9;
+    color += mouseGlow * mix(uColorTip, vec3(1.0), 0.5);
+    color = pow(color, vec3(0.92));
+
+    gl_FragColor = vec4(color, 1.0);
+  }
+`;
+
+const palettes = [
+  { c1: [0xff, 0x9a, 0xc4], c2: [0xb6, 0x9e, 0xff], tip: [0xff, 0xe2, 0xee] },
+  { c1: [0xa0, 0xbf, 0xff], c2: [0xd4, 0xb0, 0xff], tip: [0xea, 0xf2, 0xff] },
+  { c1: [0xb0, 0xe8, 0xc8], c2: [0xff, 0xe0, 0xa0], tip: [0xff, 0xfa, 0xe5] },
+  { c1: [0xff, 0xc0, 0xa0], c2: [0xff, 0x90, 0xb8], tip: [0xff, 0xee, 0xd5] },
+  { c1: [0xc8, 0xff, 0xe5], c2: [0xa0, 0xc8, 0xff], tip: [0xff, 0xff, 0xff] },
+  { c1: [0xff, 0xb0, 0xd5], c2: [0x90, 0x80, 0xff], tip: [0xff, 0xe5, 0xff] },
+  { c1: [0xf5, 0xc8, 0xff], c2: [0xff, 0xa0, 0xc4], tip: [0xff, 0xfa, 0xff] },
+];
+
+const flowers = [];
+const GEO_DETAIL = isMobile ? 3 : 5;
+const baseGeometry = new THREE.IcosahedronGeometry(1, GEO_DETAIL);
+
+function rgb(arr) { return new THREE.Color(arr[0]/255, arr[1]/255, arr[2]/255); }
+
+function makeFlower(palette, position, scale) {
+  const material = new THREE.ShaderMaterial({
+    vertexShader, fragmentShader,
+    uniforms: {
+      uTime: { value: 0 },
+      uSeed: { value: Math.random() },
+      uPetalCount: { value: 6 + Math.floor(Math.random() * 6) },
+      uPetalAmplitude: { value: 0.22 + Math.random() * 0.28 },
+      uFuzziness: { value: 0.04 + Math.random() * 0.08 },
+      uColor1: { value: rgb(palette.c1) },
+      uColor2: { value: rgb(palette.c2) },
+      uColorTip: { value: rgb(palette.tip) },
+      uMouseWorld: { value: new THREE.Vector3() }
+    }
+  });
+
+  const mesh = new THREE.Mesh(baseGeometry, material);
+  mesh.position.copy(position);
+  mesh.scale.setScalar(scale);
+  mesh.userData = {
+    basePos: position.clone(),
+    baseScale: scale,
+    floatSpeed: 0.25 + Math.random() * 0.5,
+    floatPhase: Math.random() * Math.PI * 2,
+    floatAmpX: 0.15 + Math.random() * 0.25,
+    floatAmpY: 0.2 + Math.random() * 0.3,
+    rotSpeed: new THREE.Vector3(
+      (Math.random() - 0.5) * 0.0035,
+      (Math.random() - 0.5) * 0.0035,
+      (Math.random() - 0.5) * 0.0035
+    ),
+    pushOffset: new THREE.Vector3(),
+    currentScale: scale
+  };
+  scene.add(mesh);
+  flowers.push(mesh);
+}
+
+const FLOWER_COUNT = isMobile ? 18 : 36;
+for (let i = 0; i < FLOWER_COUNT; i++) {
+  const palette = palettes[Math.floor(Math.random() * palettes.length)];
+  const angle = Math.random() * Math.PI * 2;
+  const radius = Math.pow(Math.random(), 0.6) * 7.5;
+  const x = Math.cos(angle) * radius * 1.4;
+  const y = Math.sin(angle) * radius * 0.9;
+  const z = -3 + (Math.random() - 0.5) * 6;
+  const scale = 0.55 + Math.random() * 1.5;
+  makeFlower(palette, new THREE.Vector3(x, y, z), scale);
+}
+
+const mouseNdc = new THREE.Vector2();
+const mouseNdcTarget = new THREE.Vector2();
+const mouseWorld = new THREE.Vector3();
+const raycaster = new THREE.Raycaster();
+const interactionPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+
+function onMove(clientX, clientY) {
+  mouseNdcTarget.x = (clientX / window.innerWidth) * 2 - 1;
+  mouseNdcTarget.y = -(clientY / window.innerHeight) * 2 + 1;
+}
+window.addEventListener('mousemove', (e) => onMove(e.clientX, e.clientY));
+window.addEventListener('touchmove', (e) => {
+  if (e.touches.length) onMove(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: true });
+
+const clock = new THREE.Clock();
+const tmp = new THREE.Vector3();
+
+function animate() {
+  const t = clock.getElapsedTime();
+  mouseNdc.lerp(mouseNdcTarget, 0.08);
+  raycaster.setFromCamera(mouseNdc, camera);
+  raycaster.ray.intersectPlane(interactionPlane, mouseWorld);
+
+  for (let i = 0; i < flowers.length; i++) {
+    const f = flowers[i];
+    const d = f.userData;
+    const fx = Math.cos(t * d.floatSpeed * 0.7 + d.floatPhase) * d.floatAmpX;
+    const fy = Math.sin(t * d.floatSpeed + d.floatPhase) * d.floatAmpY;
+
+    const dx = d.basePos.x - mouseWorld.x;
+    const dy = d.basePos.y - mouseWorld.y;
+    const dz = d.basePos.z - mouseWorld.z;
+    const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+    const falloff = Math.exp(-dist * 0.35);
+    const force = falloff * 2.2;
+
+    tmp.set(
+      (dx / (dist + 0.001)) * force,
+      (dy / (dist + 0.001)) * force,
+      (dz / (dist + 0.001)) * force * 0.3
+    );
+    d.pushOffset.lerp(tmp, 0.12);
+
+    f.position.x = d.basePos.x + fx + d.pushOffset.x;
+    f.position.y = d.basePos.y + fy + d.pushOffset.y;
+    f.position.z = d.basePos.z + d.pushOffset.z;
+
+    f.rotation.x += d.rotSpeed.x;
+    f.rotation.y += d.rotSpeed.y;
+    f.rotation.z += d.rotSpeed.z;
+
+    const scaleTarget = d.baseScale * (1 + falloff * 0.15);
+    d.currentScale += (scaleTarget - d.currentScale) * 0.1;
+    f.scale.setScalar(d.currentScale);
+
+    f.material.uniforms.uTime.value = t;
+    f.material.uniforms.uMouseWorld.value.copy(mouseWorld);
+  }
+
+  camera.position.x += (mouseNdc.x * 0.6 - camera.position.x) * 0.04;
+  camera.position.y += (mouseNdc.y * 0.4 - camera.position.y) * 0.04;
+  camera.lookAt(0, 0, 0);
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+/* Custom Cursor */
+const dotEl = document.getElementById('cursor-dot');
+const ringEl = document.getElementById('cursor-ring');
+let cdx = 0, cdy = 0, crx = 0, cry = 0, cmx = 0, cmy = 0;
+window.addEventListener('mousemove', (e) => { cmx = e.clientX; cmy = e.clientY; });
+function cursorAnim() {
+  cdx += (cmx - cdx) * 0.55;
+  cdy += (cmy - cdy) * 0.55;
+  crx += (cmx - crx) * 0.18;
+  cry += (cmy - cry) * 0.18;
+  dotEl.style.transform = `translate3d(${cdx}px, ${cdy}px, 0)`;
+  ringEl.style.transform = `translate3d(${crx}px, ${cry}px, 0)`;
+  requestAnimationFrame(cursorAnim);
+}
+cursorAnim();
+document.querySelectorAll('[data-hover]').forEach((el) => {
+  el.addEventListener('mouseenter', () => ringEl.classList.add('hover'));
+  el.addEventListener('mouseleave', () => ringEl.classList.remove('hover'));
+});
+
+/* Magnetic Buttons */
+document.querySelectorAll('[data-magnetic]').forEach((btn) => {
+  let mx = 0, my = 0, cx = 0, cy = 0;
+  const strength = 0.25;
+  btn.addEventListener('mousemove', (e) => {
+    const rect = btn.getBoundingClientRect();
+    mx = (e.clientX - rect.left - rect.width / 2) * strength;
+    my = (e.clientY - rect.top - rect.height / 2) * strength;
+  });
+  btn.addEventListener('mouseleave', () => { mx = 0; my = 0; });
+  function loop() {
+    cx += (mx - cx) * 0.18;
+    cy += (my - cy) * 0.18;
+    btn.style.transform = `translate3d(${cx}px, ${cy}px, 0)`;
+    requestAnimationFrame(loop);
+  }
+  loop();
+});
+
+/* Brand Letter Repulsion */
+document.querySelectorAll('.brand-letters .letter').forEach((letter) => {
+  let lx = 0, ly = 0, tlx = 0, tly = 0;
+  function letterLoop() {
+    lx += (tlx - lx) * 0.12;
+    ly += (tly - ly) * 0.12;
+    letter.style.transform = `translate3d(${lx}px, ${ly}px, 0)`;
+    requestAnimationFrame(letterLoop);
+  }
+  letterLoop();
+  window.addEventListener('mousemove', (e) => {
+    const rect = letter.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const ddx = e.clientX - cx;
+    const ddy = e.clientY - cy;
+    const dist = Math.hypot(ddx, ddy);
+    const radius = 200;
+    if (dist < radius && dist > 0.1) {
+      const force = (1 - dist / radius) * 36;
+      tlx = -(ddx / dist) * force;
+      tly = -(ddy / dist) * force;
+    } else { tlx = 0; tly = 0; }
+  });
+});
+
+/* Horizontal Scroll (GSAP) */
+if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+  const track = document.querySelector('.horizontal-track');
+  const pinWrap = document.querySelector('.horizontal-pin');
+  const section = document.querySelector('.horizontal-section');
+  const progressBar = document.getElementById('h-progress-bar');
+
+  if (track && pinWrap && !isMobile) {
+    const getDistance = () => Math.max(0, track.scrollWidth - window.innerWidth);
+    gsap.to(track, {
+      x: () => -getDistance(),
+      ease: 'none',
+      scrollTrigger: {
+        trigger: pinWrap,
+        pin: true, scrub: 1,
+        start: 'top top',
+        end: () => '+=' + getDistance(),
+        invalidateOnRefresh: true,
+        anticipatePin: 1,
+        onUpdate: (self) => {
+          if (progressBar) progressBar.style.width = (self.progress * 100) + '%';
+        }
+      }
+    });
+
+    gsap.to('#bg-canvas', {
+      opacity: 0.12,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: section,
+        start: 'top 80%',
+        end: 'top 10%',
+        scrub: true
+      }
+    });
+
+    window.addEventListener('load', () => setTimeout(() => ScrollTrigger.refresh(), 200));
+  }
+
+  if (isMobile) {
+    const canvasEl = document.getElementById('bg-canvas');
+    window.addEventListener('scroll', () => {
+      const y = window.scrollY;
+      const h = window.innerHeight;
+      const op = Math.max(0.1, 1 - (y / (h * 0.8)));
+      if (canvasEl) canvasEl.style.opacity = op;
+    }, { passive: true });
+  }
+}
+
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    clearTimeout(__loaderTimeout);
+    __hideLoader();
+  }, 1700);
+});
+
+} catch (err) {
+  console.error('[BLOOM] Init failed:', err);
+  clearTimeout(__loaderTimeout);
+  __hideLoader();
+  const c = document.getElementById('bg-canvas');
+  if (c) c.style.display = 'none';
+}
+</script>
+
+</body>
+</html>
