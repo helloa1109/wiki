@@ -2,7 +2,7 @@ import { GNB } from '@/components/layout/GNB'
 import { AboutHero } from './_components/Abouthero'
 import { AwardsCollage } from './_components/Awardscollage'
 import { Statement } from './_components/Statement'
-import { HorizontalWorks } from './_components/Horizontalworks'
+import { HorizontalWorks } from './_components/HorizontalWorks'
 import { Outro } from './_components/Outro'
 import { PageChrome } from './_components/Pagechrome'
 
