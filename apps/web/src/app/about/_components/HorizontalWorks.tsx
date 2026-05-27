@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import Image from 'next/image'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import styles from './Horizontalworks.module.css'
+import styles from './HorizontalWorks.module.css'
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger)
@@ -65,15 +65,24 @@ export function HorizontalWorks() {
     if (isMobile) return
 
     const ctx = gsap.context(() => {
-      const totalScroll = track.scrollWidth - window.innerWidth
+      // 마지막 카드의 중심이 viewport 중심에 닿는 거리만큼만 가로 이동.
+      // (track 의 우측 끝이 viewport 우측에 붙는 게 아니라
+      //  마지막 카드가 화면 가운데에서 멈추고, pin 이 풀리며 다음 섹션이 진입.)
+      const getScrollDistance = () => {
+        const cards = track.querySelectorAll('article')
+        const lastCard = cards[cards.length - 1] as HTMLElement | undefined
+        if (!lastCard) return 0
+        const lastCardCenter = lastCard.offsetLeft + lastCard.offsetWidth / 2
+        return Math.max(0, lastCardCenter - window.innerWidth / 2)
+      }
 
       const tween = gsap.to(track, {
-        x: -totalScroll,
+        x: () => -getScrollDistance(),
         ease: 'none',
         scrollTrigger: {
           trigger: section,
           start: 'top top',
-          end: () => `+=${totalScroll}`,
+          end: () => `+=${getScrollDistance()}`,
           scrub: 1,
           pin: true,
           anticipatePin: 1,
