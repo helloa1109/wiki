@@ -1,4 +1,9 @@
-import { Newsreader, JetBrains_Mono, Fraunces } from "next/font/google";
+import {
+  Fraunces,
+  Newsreader,
+  JetBrains_Mono,
+  Caveat,
+} from 'next/font/google'
 
 /**
  * Newsreader — 디스플레이 세리프 (이탤릭 강조어용)
@@ -30,3 +35,10 @@ export const fraunces = Fraunces({
   variable: "--font-fraunces",
   display: "swap",
 });
+
+export const caveat = Caveat({
+  subsets: ['latin'],
+  weight: ['500', '700'],
+  variable: '--font-caveat',
+  display: 'swap',
+})

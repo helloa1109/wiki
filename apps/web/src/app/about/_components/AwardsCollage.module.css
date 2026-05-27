@@ -1,0 +1,100 @@
+.awards {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    background: #ede7d8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8rem 2rem;
+  }
+  
+  .collage {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+  
+  .awThumb {
+    position: absolute;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px -10px rgba(26, 22, 18, 0.2);
+  }
+  
+  .awThumb img {
+    display: block;
+    object-fit: cover;
+  }
+  
+  .aw1 { top: 5%; left: 12%; width: 200px; height: 280px; transform: rotate(-12deg); }
+  .aw2 { top: 8%; right: 18%; width: 240px; height: 160px; transform: rotate(8deg); }
+  .aw3 { top: 38%; left: 4%; width: 220px; height: 290px; transform: rotate(-6deg); }
+  .aw4 { top: 32%; right: 5%; width: 260px; height: 170px; transform: rotate(10deg); }
+  .aw5 { bottom: 6%; left: 20%; width: 240px; height: 160px; transform: rotate(-8deg); }
+  .aw6 { bottom: 10%; right: 14%; width: 200px; height: 280px; transform: rotate(6deg); }
+  .aw7 { top: 50%; left: 35%; width: 180px; height: 240px; transform: rotate(-14deg); opacity: 0.5; }
+  .aw8 { bottom: 30%; right: 32%; width: 200px; height: 130px; transform: rotate(4deg); opacity: 0.6; }
+  
+  .title {
+    position: relative;
+    z-index: 5;
+    text-align: center;
+    pointer-events: none;
+  }
+  
+  .title h2 {
+    font-family: var(--font-fraunces), 'Georgia', serif;
+    font-weight: 300;
+    font-size: clamp(3.5rem, 9vw, 9rem);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: #1a1612;
+    margin-bottom: 1.5rem;
+  }
+  
+  .title em {
+    font-style: italic;
+    font-weight: 300;
+  }
+  
+  .total {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0.6rem 0.5rem 1.4rem;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 100px;
+    font-size: 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    color: #1a1612;
+  }
+  
+  .count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #ff5b14;
+    color: white;
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  
+  @media (max-width: 768px) {
+    .awards { padding: 6rem 1rem; min-height: 80vh; }
+  
+    .aw1 { top: 4%; left: 5%; width: 100px; height: 140px; }
+    .aw2 { top: 8%; right: 6%; width: 110px; height: 70px; }
+    .aw3 { top: 42%; left: -2%; width: 100px; height: 130px; }
+    .aw4 { top: 38%; right: -2%; width: 110px; height: 70px; }
+    .aw5 { bottom: 6%; left: 8%; width: 100px; height: 70px; }
+    .aw6 { bottom: 8%; right: 6%; width: 100px; height: 140px; }
+    .aw7 { display: none; }
+    .aw8 { display: none; }
+  }

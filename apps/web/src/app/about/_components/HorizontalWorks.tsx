@@ -1,105 +1,144 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import styles from './HorizontalWorks.module.css'
+import Image from 'next/image'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import styles from './Horizontalworks.module.css'
 
-const works = [
-  { num: '01', title: 'Liquid Bloom',    tag: 'Generative · Blender · 2026', art: styles.art1 },
-  { num: '02', title: 'Tidal Garden',    tag: 'WebGL · TouchDesigner · 2025', art: styles.art2 },
-  { num: '03', title: 'Coral Drift',     tag: 'Midjourney · Runway · 2025',   art: styles.art3 },
-  { num: '04', title: 'Aurora Spin',     tag: 'Shader · GLSL · 2025',         art: styles.art4 },
-  { num: '05', title: 'Meadow Sequence', tag: 'Blender · Nano Banana · 2024', art: styles.art5 },
-]
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger)
+}
+
+const WORKS = [
+  {
+    n: '01',
+    title: 'Liquid Bloom',
+    tag: 'Generative · 2025',
+    desc: '셰이더 기반 유체 시뮬레이션과 GSAP 타임라인을 결합한 인터랙티브 히어로.',
+    src: 'https://images.unsplash.com/photo-1561070791-2526d30994b8?w=800&q=80',
+  },
+  {
+    n: '02',
+    title: 'Tidal Garden',
+    tag: 'WebGL · 2025',
+    desc: '스크롤 위치에 반응해 파도처럼 흐르는 식물 모티프 데모.',
+    src: 'https://images.unsplash.com/photo-1547119957-637f8679db1e?w=800&q=80',
+  },
+  {
+    n: '03',
+    title: 'Coral Drift',
+    tag: 'Three.js · 2024',
+    desc: '커서를 따라 자라나는 산호 구조의 3D 환경.',
+    src: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?w=800&q=80',
+  },
+  {
+    n: '04',
+    title: 'Aurora Spin',
+    tag: 'Canvas · 2024',
+    desc: '북극광에서 영감 받은 입자 시스템과 회전 파라미터 컨트롤.',
+    src: 'https://images.unsplash.com/photo-1481487196290-c152efe083f5?w=800&q=80',
+  },
+  {
+    n: '05',
+    title: 'Meadow Sequence',
+    tag: 'Generative · 2024',
+    desc: '바람의 결을 따라 흐르는 풀밭의 생성형 시퀀스.',
+    src: 'https://images.unsplash.com/photo-1545665277-5937489579f2?w=800&q=80',
+  },
+] as const
 
 export function HorizontalWorks() {
-  const pinRef = useRef<HTMLDivElement>(null)
+  const sectionRef = useRef<HTMLElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
-  const progressRef = useRef<HTMLDivElement>(null)
+  const progressBarRef = useRef<HTMLSpanElement>(null)
+  const progressNumRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
+    const section = sectionRef.current
+    const track = trackRef.current
+    if (!section || !track) return
+
     const isMobile =
       window.matchMedia('(max-width: 768px)').matches ||
       /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-
     if (isMobile) return
 
-    const pin = pinRef.current
-    const track = trackRef.current
-    const progressBar = progressRef.current
-    if (!pin || !track) return
+    const ctx = gsap.context(() => {
+      const totalScroll = track.scrollWidth - window.innerWidth
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let ScrollTriggerRef: any = null
-
-    const setup = async () => {
-      const { default: gsap } = await import('gsap')
-      const { ScrollTrigger } = await import('gsap/ScrollTrigger')
-      gsap.registerPlugin(ScrollTrigger)
-      ScrollTriggerRef = ScrollTrigger
-
-      const getDistance = () => Math.max(0, track.scrollWidth - window.innerWidth)
-
-      gsap.to(track, {
-        x: () => -getDistance(),
+      const tween = gsap.to(track, {
+        x: -totalScroll,
         ease: 'none',
         scrollTrigger: {
-          trigger: pin,
-          pin: true,
-          scrub: 1,
+          trigger: section,
           start: 'top top',
-          end: () => '+=' + getDistance(),
-          invalidateOnRefresh: true,
+          end: () => `+=${totalScroll}`,
+          scrub: 1,
+          pin: true,
           anticipatePin: 1,
+          invalidateOnRefresh: true,
           onUpdate: (self) => {
-            if (progressBar) progressBar.style.width = `${self.progress * 100}%`
+            const p = self.progress
+            if (progressBarRef.current) {
+              progressBarRef.current.style.width = `${p * 100}%`
+            }
+            if (progressNumRef.current) {
+              const idx = Math.min(WORKS.length, Math.max(1, Math.ceil(p * WORKS.length)))
+              progressNumRef.current.textContent = String(idx).padStart(2, '0')
+            }
           },
         },
       })
 
-      // React 렌더 후 레이아웃이 완전히 정착될 때까지 기다렸다가 refresh
-      setTimeout(() => ScrollTrigger.refresh(), 300)
-    }
+      return () => {
+        tween.scrollTrigger?.kill()
+        tween.kill()
+      }
+    }, section)
 
-    setup()
-
-    return () => {
-      ScrollTriggerRef?.getAll().forEach((st: { kill: () => void }) => st.kill())
-    }
+    return () => ctx.revert()
   }, [])
 
   return (
-    <section className={styles.section}>
-      <div ref={pinRef} className={styles.pin}>
-        <div className={styles.header}>
-          <div>
-            <p className={styles.eyebrow}>Selected Works · 05</p>
-            <p className={styles.title}>
-              <em>Recent fragments<br />from the garden.</em>
-            </p>
-          </div>
-          <div className={styles.headerSide}>
-            Scroll to explore<br />
-            <span style={{ opacity: 0.55 }}>↓ becomes →</span>
-          </div>
-        </div>
+    <section ref={sectionRef} className={styles.section}>
+      <div className={styles.header}>
+        <span className={styles.eyebrow}>Recent Works</span>
+        <h2>
+          정원에서 피어난 <em>최근 작업들</em>.
+        </h2>
+      </div>
 
-        <div ref={trackRef} className={styles.track}>
-          {works.map((w) => (
-            <article key={w.num} className={styles.card}>
-              <div className={`${styles.cardArt} ${w.art}`} />
-              <div className={styles.cardMeta}>
-                <p className={styles.cardNum}>{w.num} / 05</p>
-                <p className={styles.cardTitle}><em>{w.title}</em></p>
-                <p className={styles.cardTag}>{w.tag}</p>
-              </div>
-            </article>
-          ))}
-        </div>
+      <div ref={trackRef} className={styles.track}>
+        {WORKS.map((w) => (
+          <article key={w.n} className={styles.card}>
+            <div className={styles.cardMedia}>
+              <Image
+                src={w.src}
+                alt={w.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 520px"
+              />
+            </div>
+            <div className={styles.cardMeta}>
+              <div className={styles.cardN}>{w.n}</div>
+              <div className={styles.cardTitle}>{w.title}</div>
+              <div className={styles.cardTag}>{w.tag}</div>
+              <p className={styles.cardDesc}>{w.desc}</p>
+              <a className={styles.cardArrow} href="#" aria-label={`${w.title} 자세히 보기`}>
+                →
+              </a>
+            </div>
+          </article>
+        ))}
+      </div>
 
-        <p className={styles.hint}>Horizontal scroll</p>
-        <div className={styles.progress}>
-          <div ref={progressRef} className={styles.progressBar} />
-        </div>
+      <div className={styles.progress} aria-hidden="true">
+        <span ref={progressNumRef} className={styles.progressN}>01</span>
+        <span className={styles.progressTrack}>
+          <span ref={progressBarRef} className={styles.progressBar} />
+        </span>
+        <span className={styles.progressTotal}>0{WORKS.length}</span>
       </div>
     </section>
   )

@@ -1,0 +1,120 @@
+.hero {
+    position: relative;
+    min-height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(ellipse at 20% 30%, rgba(255, 220, 180, 0.5) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 70%, rgba(255, 200, 200, 0.4) 0%, transparent 60%),
+      #f4f0e8;
+    isolation: isolate;
+  }
+  
+  .collage {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    perspective: 1200px;
+  }
+  
+  .thumb {
+    position: absolute;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow:
+      0 24px 60px -12px rgba(26, 22, 18, 0.25),
+      0 8px 20px -8px rgba(26, 22, 18, 0.15);
+    transform-style: preserve-3d;
+    will-change: transform;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .thumb img {
+    display: block;
+    object-fit: cover;
+    filter: saturate(0.95);
+  }
+  
+  .thumb::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 60%, rgba(0, 0, 0, 0.15) 100%);
+    pointer-events: none;
+    z-index: 2;
+  }
+  
+  .thumb1 { top: 4%; left: 22%; width: 280px; height: 175px; transform: rotate(-8deg); }
+  .thumb2 { top: 38%; left: 58%; width: 360px; height: 220px; transform: rotate(6deg); }
+  .thumb3 { top: 8%; right: -3%; width: 240px; height: 320px; transform: rotate(12deg); }
+  .thumb4 { bottom: 18%; left: 38%; width: 320px; height: 200px; transform: rotate(-4deg); }
+  .thumb5 { top: 18%; left: -2%; width: 220px; height: 280px; transform: rotate(-10deg); }
+  .thumb6 { bottom: 6%; right: 6%; width: 280px; height: 175px; transform: rotate(8deg); }
+  .thumb7 { top: 56%; left: 8%; width: 200px; height: 250px; transform: rotate(-6deg); }
+  
+  .mark {
+    position: relative;
+    z-index: 5;
+    font-family: var(--font-caveat), 'Caveat', cursive;
+    font-weight: 700;
+    font-size: clamp(8rem, 22vw, 26rem);
+    color: #ff5b14;
+    line-height: 0.85;
+    letter-spacing: -0.02em;
+    text-align: center;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+    animation: heroMarkIn 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+  }
+  
+  @keyframes heroMarkIn {
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  
+  .caption {
+    position: absolute;
+    bottom: 22%;
+    left: 50%;
+    transform: translate(-50%, 20px);
+    z-index: 5;
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: #1a1612;
+    text-align: center;
+    letter-spacing: -0.015em;
+    opacity: 0;
+    animation: captionIn 1s cubic-bezier(0.16, 1, 0.3, 1) 0.9s forwards;
+  }
+  
+  .caption mark {
+    background: linear-gradient(180deg, transparent 60%, rgba(255, 91, 20, 0.3) 60%);
+    padding: 0 0.15em;
+    color: #1a1612;
+  }
+  
+  @keyframes captionIn {
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
+  
+  @media (max-width: 768px) {
+    .thumb { transition: none; }
+    .thumb1 { top: 6%; left: 5%; width: 130px; height: 90px; }
+    .thumb2 { top: 32%; left: 50%; width: 140px; height: 90px; }
+    .thumb3 { top: 5%; right: -5%; width: 110px; height: 140px; }
+    .thumb4 { bottom: 22%; left: 30%; width: 130px; height: 85px; }
+    .thumb5 { top: 14%; left: -8%; width: 110px; height: 140px; }
+    .thumb6 { bottom: 8%; right: 4%; width: 130px; height: 90px; }
+    .thumb7 { top: 50%; left: 6%; width: 110px; height: 140px; }
+  
+    .caption {
+      bottom: 14%;
+      font-size: 0.88rem;
+      padding: 0 1.5rem;
+      max-width: 90vw;
+    }
+  }
