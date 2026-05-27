@@ -12,7 +12,7 @@
   }
   
   .progressLabel {
-    font-family: var(--font-jetbrains-mono), 'JetBrains Mono', monospace;
+    font-family: var(--font-pretendard), system-ui, sans-serif;
     font-size: 0.7rem;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -20,8 +20,7 @@
   }
   
   .progressNumber {
-    font-family: var(--font-fraunces), 'Georgia', serif;
-    font-style: italic;
+    font-family: var(--font-pretendard), system-ui, sans-serif;
     font-weight: 300;
     font-size: 3rem;
     line-height: 1;
