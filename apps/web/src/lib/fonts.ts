@@ -1,4 +1,4 @@
-import { Newsreader, JetBrains_Mono } from "next/font/google";
+import { Newsreader, JetBrains_Mono, Fraunces } from "next/font/google";
 
 /**
  * Newsreader — 디스플레이 세리프 (이탤릭 강조어용)
@@ -20,5 +20,13 @@ export const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
   variable: "--font-jetbrains-mono",
+  display: "swap",
+});
+
+export const fraunces = Fraunces({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  weight: ["300"],
+  variable: "--font-fraunces",
   display: "swap",
 });

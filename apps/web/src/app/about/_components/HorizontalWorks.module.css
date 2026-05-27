@@ -1,0 +1,296 @@
+.section {
+  position: relative;
+  z-index: 5;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(20, 18, 36, 0.85) 8%,
+    #14121e 22%,
+    #0d0c18 78%,
+    rgba(13, 12, 24, 0.85) 92%,
+    transparent 100%);
+}
+
+/* ── Desktop: pinned horizontal ─────── */
+.pin {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.header {
+  position: absolute;
+  top: 12vh;
+  left: 3rem;
+  right: 3rem;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 2rem;
+  pointer-events: none;
+}
+
+.eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-weight: 500;
+}
+
+.eyebrow::before {
+  content: '';
+  width: 28px;
+  height: 1px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.title {
+  font-family: var(--font-fraunces), 'Georgia', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(1.5rem, 2.2vw, 2.2rem);
+  color: white;
+  letter-spacing: -0.025em;
+  max-width: 22ch;
+  line-height: 1.15;
+  margin-top: 0.6rem;
+}
+
+.headerSide {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: right;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+}
+
+.track {
+  display: flex;
+  gap: 2.5rem;
+  padding: 0 6vw;
+  will-change: transform;
+  align-items: center;
+}
+
+/* ── Card ─────────────────────────── */
+.card {
+  flex: 0 0 auto;
+  width: 38vw;
+  max-width: 580px;
+  min-width: 320px;
+  height: 62vh;
+  min-height: 460px;
+  max-height: 700px;
+  border-radius: 28px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  background: #0d0c18;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.6);
+}
+
+.card:hover {
+  transform: translateY(-10px);
+}
+
+.cardArt {
+  position: absolute;
+  inset: -15%;
+  z-index: 1;
+  transition: transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card:hover .cardArt {
+  transform: scale(1.08);
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.55) 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.cardMeta {
+  position: absolute;
+  bottom: 2rem;
+  left: 2rem;
+  right: 2rem;
+  z-index: 3;
+  color: white;
+}
+
+.cardNum {
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin-bottom: 0.9rem;
+  font-weight: 500;
+}
+
+.cardTitle {
+  font-family: var(--font-fraunces), 'Georgia', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  letter-spacing: -0.025em;
+  line-height: 1;
+  margin-bottom: 0.6rem;
+}
+
+.cardTag {
+  font-size: 0.78rem;
+  opacity: 0.6;
+}
+
+/* ── Art Backgrounds ──────────────── */
+.art1 {
+  background:
+    radial-gradient(circle at 30% 30%, #ff9ac4 0%, transparent 50%),
+    radial-gradient(circle at 70% 70%, #b69eff 0%, transparent 50%),
+    radial-gradient(circle at 50% 55%, #ff7a8a 0%, transparent 55%),
+    #2a1a3a;
+  filter: blur(18px) saturate(140%);
+  animation: artFloatA 18s ease-in-out infinite;
+}
+
+.art2 {
+  background:
+    radial-gradient(circle at 60% 30%, #c8ffe5 0%, transparent 55%),
+    radial-gradient(circle at 30% 70%, #a0c8ff 0%, transparent 55%),
+    radial-gradient(circle at 80% 80%, #80d0e8 0%, transparent 50%),
+    #16263a;
+  filter: blur(20px) saturate(150%);
+  animation: artFloatB 22s ease-in-out infinite;
+}
+
+.art3 {
+  background:
+    radial-gradient(circle at 25% 60%, #ffc0a0 0%, transparent 45%),
+    radial-gradient(circle at 75% 35%, #ff90b8 0%, transparent 50%),
+    radial-gradient(circle at 50% 80%, #ff7a8a 0%, transparent 50%),
+    #3a1a26;
+  filter: blur(16px) saturate(160%);
+  animation: artFloatA 20s ease-in-out infinite reverse;
+}
+
+.art4 {
+  background: conic-gradient(from 45deg at 50% 50%, #b69eff, #ff9ac4, #a0bfff, #d4b0ff, #b69eff);
+  filter: blur(28px) saturate(130%);
+  animation: artRotate 30s linear infinite;
+}
+
+.art5 {
+  background:
+    radial-gradient(circle at 40% 40%, #b0e8c8 0%, transparent 50%),
+    radial-gradient(circle at 70% 65%, #ffe0a0 0%, transparent 50%),
+    radial-gradient(circle at 20% 80%, #c8ffe5 0%, transparent 45%),
+    #163a26;
+  filter: blur(20px) saturate(140%);
+  animation: artFloatB 25s ease-in-out infinite reverse;
+}
+
+@keyframes artFloatA {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(-3%, 4%) scale(1.08); }
+  66%       { transform: translate(4%, -3%) scale(0.95); }
+}
+
+@keyframes artFloatB {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%       { transform: translate(3%, -4%) scale(1.06); }
+}
+
+@keyframes artRotate {
+  from { transform: rotate(0deg) scale(1.15); }
+  to   { transform: rotate(360deg) scale(1.15); }
+}
+
+/* ── Progress bar ────────────────── */
+.hint {
+  position: absolute;
+  bottom: 5.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.64rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  z-index: 20;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.progress {
+  position: absolute;
+  bottom: 4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 240px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 20;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  width: 0%;
+  background: white;
+  border-radius: 2px;
+  transition: width 0.05s linear;
+}
+
+/* ── Mobile ──────────────────────── */
+@media (max-width: 768px) {
+  .pin {
+    height: auto;
+    min-height: auto;
+    padding: 5rem 0 3rem;
+  }
+
+  .header {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    padding: 0 1.5rem 2rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .headerSide {
+    text-align: left;
+  }
+
+  .track {
+    flex-direction: column;
+    padding: 0 1.5rem;
+    gap: 1.5rem;
+    transform: none !important;
+  }
+
+  .card {
+    width: 100%;
+    height: 60vh;
+    min-height: 380px;
+    max-width: none;
+  }
+
+  .hint,
+  .progress {
+    display: none;
+  }
+}

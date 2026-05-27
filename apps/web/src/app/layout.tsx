@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { newsreader, jetbrainsMono } from "../lib/fonts";
+import { newsreader, jetbrainsMono, fraunces } from "../lib/fonts";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 
 export const metadata: Metadata = {
@@ -17,7 +17,7 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
-      className={`dark ${newsreader.variable} ${jetbrainsMono.variable}`}
+      className={`dark ${newsreader.variable} ${jetbrainsMono.variable} ${fraunces.variable}`}
       suppressHydrationWarning
     >
       <head>

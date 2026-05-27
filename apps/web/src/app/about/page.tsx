@@ -3,6 +3,8 @@ import { GrainOverlay } from '@/components/effects/GrainOverlay'
 import { CursorSpotlight } from '@/components/effects/CursorSpotlight'
 import { FadeUp } from '@/components/about/FadeUp'
 import { SlideFromSides } from '@/components/about/SlideFromSides'
+import { BloomHero } from './_components/BloomHero'
+import { HorizontalWorks } from './_components/HorizontalWorks'
 import Link from 'next/link'
 
 export const metadata = {
@@ -41,6 +43,9 @@ export default function AboutPage() {
       <CursorSpotlight />
       <GNB />
       <main className="overflow-hidden">
+
+        {/* ── Bloom Hero ───────────────────────────── */}
+        <BloomHero />
 
         {/* ── Hero ─────────────────────────────────── */}
         <section className="relative flex min-h-[100dvh] flex-col items-start justify-end px-10 pb-24 pt-[140px] max-md:px-6">
@@ -125,6 +130,9 @@ export default function AboutPage() {
 
         {/* ── 구분선 ────────────────────────────────── */}
         <div className="mx-10 border-t border-white/[0.06] max-md:mx-6" />
+
+        {/* ── 가로 스크롤 갤러리 ────────────────────── */}
+        <HorizontalWorks />
 
         {/* ── 우리의 가치관 ─────────────────────────── */}
         <section className="px-10 py-32 max-md:px-6">
