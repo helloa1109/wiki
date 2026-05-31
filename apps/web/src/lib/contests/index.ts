@@ -22,13 +22,13 @@ export async function fetchAllContests(options: FetchOptions = {}): Promise<Cont
   }
 
   const settled = await Promise.allSettled(fetchers)
-  const arrays = settled.map((r) => (r.status === 'fulfilled' ? r.value : []))
+  const all = settled.flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
 
-  // 각 소스 내 position을 전체 개수로 정규화(0~1)해 신선도 점수로 변환 후 정렬
-  // → 두 소스가 고르게 섞이면서 각 소스 안에서는 최신순 유지
-  const scored = arrays.flatMap((arr) =>
-    arr.map((item, i) => ({ item, score: arr.length > 1 ? i / (arr.length - 1) : 0 }))
-  )
-  scored.sort((a, b) => a.score - b.score)
-  return scored.map((s) => s.item)
+  // daysLeft 오름차순 (마감 임박순) — 두 소스가 값 기준으로 자연스럽게 섞임
+  // null은 뒤로, 만료(음수)는 맨 뒤로
+  all.sort((a, b) => {
+    const score = (d: number | null) => d === null ? 9999 : d < 0 ? 99999 : d
+    return score(a.daysLeft) - score(b.daysLeft)
+  })
+  return all
 }

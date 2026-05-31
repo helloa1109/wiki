@@ -25,7 +25,7 @@ function classifyCategory(title: string, field: string): ContestCategory {
 }
 
 function parseDaysLeft(dayText: string): number | null {
-  const match = dayText.match(/D([+-]?\d+)/)
+  const match = dayText.match(/D-(\d+)/)
   if (!match) return null
   return parseInt(match[1]!, 10)
 }
