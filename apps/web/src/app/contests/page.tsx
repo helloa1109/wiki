@@ -6,7 +6,7 @@ import { CursorSpotlight } from '@/components/effects/CursorSpotlight'
 import { fetchAllContests } from '@/lib/contests'
 import type { Contest } from '@/lib/contests/types'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 export const metadata = {
   title: 'Contests | Wiki',

@@ -1,34 +1,53 @@
-import { fetchWevityContests } from './wevity'
-import { fetchLinkareerContests } from './linkareer'
-import type { Contest, ContestSource } from './types'
+import { createClient } from '@/lib/supabase/server'
+import type { Contest, ContestCategory, ContestSource } from './types'
 
 export type { Contest, ContestCategory, ContestSource } from './types'
 
-interface FetchOptions {
-  sources?: ContestSource[]
-  maxPagesPerSource?: number
-}
+export async function fetchAllContests(): Promise<Contest[]> {
+  const supabase = await createClient()
 
-export async function fetchAllContests(options: FetchOptions = {}): Promise<Contest[]> {
-  const { sources = ['wevity', 'linkareer'], maxPagesPerSource } = options
-
-  const fetchers: Promise<Contest[]>[] = []
-
-  if (sources.includes('wevity')) {
-    fetchers.push(fetchWevityContests({ maxPages: maxPagesPerSource ?? 3 }))
+  type ContestRow = {
+    external_id: string
+    title: string
+    organizer: string | null
+    category: string | null
+    start_date: string | null
+    end_date: string | null
+    days_left: number | null
+    prize: string | null
+    target: string | null
+    detail_url: string
+    thumbnail_url: string | null
+    source: string
   }
-  if (sources.includes('linkareer')) {
-    fetchers.push(fetchLinkareerContests({ maxPages: maxPagesPerSource ?? 2 }))
+
+  const { data, error } = await supabase
+    .from('contests')
+    .select('external_id, title, organizer, category, start_date, end_date, days_left, prize, target, detail_url, thumbnail_url, source')
+    .order('scraped_at', { ascending: false }) as { data: ContestRow[] | null; error: unknown }
+
+  if (error) {
+    console.error('[contests] supabase fetch error:', error)
+    return []
   }
 
-  const settled = await Promise.allSettled(fetchers)
-  const all = settled.flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
+  const score = (d: number | null) => d === null ? 9999 : d < 0 ? 99999 : d
 
-  // daysLeft 오름차순 (마감 임박순) — 두 소스가 값 기준으로 자연스럽게 섞임
-  // null은 뒤로, 만료(음수)는 맨 뒤로
-  all.sort((a, b) => {
-    const score = (d: number | null) => d === null ? 9999 : d < 0 ? 99999 : d
-    return score(a.daysLeft) - score(b.daysLeft)
-  })
-  return all
+  const mapped = (data ?? []).map((row) => ({
+    id: row.external_id,
+    title: row.title,
+    organizer: row.organizer,
+    category: (row.category ?? 'etc') as ContestCategory,
+    startDate: row.start_date,
+    endDate: row.end_date,
+    daysLeft: row.days_left,
+    prize: row.prize,
+    target: row.target,
+    detailUrl: row.detail_url,
+    thumbnailUrl: row.thumbnail_url,
+    source: row.source as ContestSource,
+  }))
+
+  mapped.sort((a, b) => score(a.daysLeft) - score(b.daysLeft))
+  return mapped
 }

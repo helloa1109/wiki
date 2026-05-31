@@ -1,0 +1,19 @@
+name: Scrape Contests
+
+on:
+  schedule:
+    - cron: '0 0,6,12,18 * * *'  # 하루 4회 (UTC 기준, KST 9/15/21/3시)
+  workflow_dispatch:  # 수동 실행 가능
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call scrape-contests Edge Function
+        run: |
+          curl -X POST "${{ secrets.SUPABASE_FUNCTION_URL }}/scrape-contests" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            --fail \
+            --silent \
+            --show-error
