@@ -3,27 +3,14 @@ import { ExternalLink } from 'lucide-react'
 import { GNB } from '@/components/layout/GNB'
 import { GrainOverlay } from '@/components/effects/GrainOverlay'
 import { CursorSpotlight } from '@/components/effects/CursorSpotlight'
-import { createClient } from '@/lib/supabase/server'
+import { fetchAllContests } from '@/lib/contests'
+import type { Contest } from '@/lib/contests/types'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 export const metadata = {
   title: 'Contests | Wiki',
   description: 'IT/SW/AI/창업 공모전 목록을 확인하세요.',
-}
-
-type Contest = {
-  id: string
-  title: string
-  organizer: string | null
-  category: string | null
-  start_date: string | null
-  end_date: string | null
-  prize: string | null
-  target: string | null
-  wevity_url: string | null
-  official_url: string | null
-  thumbnail_url: string | null
 }
 
 const CATEGORIES = [
@@ -43,30 +30,9 @@ const CATEGORY_COLORS: Record<string, string> = {
   etc: 'bg-white/[0.06] text-foreground-muted border-white/[0.06]',
 }
 
-async function getContests(category: string): Promise<Contest[]> {
-  const supabase = await createClient()
-  let q = supabase
-    .from('contests')
-    .select('id, title, organizer, category, start_date, end_date, prize, target, wevity_url, official_url, thumbnail_url')
-    .order('end_date', { ascending: true })
-    .limit(100)
-
-  if (category !== 'all') {
-    q = q.eq('category', category)
-  }
-
-  const { data } = await q
-  return (data as Contest[]) ?? []
-}
-
-function formatDate(d: string | null) {
-  if (!d) return '-'
-  return d.slice(0, 10).replace(/-/g, '.')
-}
-
-function isExpired(end: string | null) {
-  if (!end) return false
-  return new Date(end) < new Date()
+function isExpired(daysLeft: number | null) {
+  if (daysLeft === null) return false
+  return daysLeft < 0
 }
 
 export default async function ContestsPage({
@@ -74,9 +40,11 @@ export default async function ContestsPage({
 }: {
   searchParams: Promise<{ category?: string }>
 }) {
-  const params = await searchParams
-  const category = params.category ?? 'all'
-  const contests = await getContests(category)
+  const { category = 'all' } = await searchParams
+  const all = await fetchAllContests()
+  const contests = category === 'all'
+    ? all
+    : all.filter((c: Contest) => c.category === category)
 
   return (
     <>
@@ -114,13 +82,13 @@ export default async function ContestsPage({
         {contests.length === 0 ? (
           <div className="flex h-60 items-center justify-center rounded-2xl border border-white/[0.06]">
             <p className="text-[14px] text-foreground-subtle">
-              아직 수집된 공모전이 없어요. GitHub Actions를 수동으로 한 번 실행해보세요.
+              공모전 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {contests.map((c) => {
-              const expired = isExpired(c.end_date)
+            {contests.map((c: Contest) => {
+              const expired = isExpired(c.daysLeft)
               return (
                 <article
                   key={c.id}
@@ -136,13 +104,16 @@ export default async function ContestsPage({
                     <span
                       className={[
                         'rounded-full border px-2.5 py-0.5 text-[11px] font-medium',
-                        CATEGORY_COLORS[c.category ?? 'etc'] ?? CATEGORY_COLORS.etc,
+                        CATEGORY_COLORS[c.category] ?? CATEGORY_COLORS.etc,
                       ].join(' ')}
                     >
                       {CATEGORIES.find((x) => x.key === c.category)?.label ?? '기타'}
                     </span>
                     {expired && (
                       <span className="text-[11px] text-foreground-subtle">마감</span>
+                    )}
+                    {c.daysLeft !== null && !expired && (
+                      <span className="text-[11px] text-foreground-subtle">D-{c.daysLeft}</span>
                     )}
                   </div>
 
@@ -155,39 +126,21 @@ export default async function ContestsPage({
                   )}
 
                   <div className="mt-auto space-y-1 text-[12px] text-foreground-subtle">
-                    {(c.start_date || c.end_date) && (
-                      <p>
-                        📅 {formatDate(c.start_date)} ~ {formatDate(c.end_date)}
-                      </p>
-                    )}
                     {c.prize && <p>🏆 {c.prize}</p>}
                     {c.target && <p>👤 {c.target}</p>}
                   </div>
 
                   {/* 링크 버튼 */}
                   <div className="mt-4 flex gap-2">
-                    {c.wevity_url && (
-                      <a
-                        href={c.wevity_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 rounded-lg border border-white/[0.08] px-3 py-1.5 text-[12px] text-foreground-muted transition-colors hover:border-white/[0.16] hover:text-foreground"
-                      >
-                        Wevity 상세
-                        <ExternalLink size={11} />
-                      </a>
-                    )}
-                    {c.official_url && (
-                      <a
-                        href={c.official_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 rounded-lg border border-white/[0.08] px-3 py-1.5 text-[12px] text-foreground-muted transition-colors hover:border-white/[0.16] hover:text-foreground"
-                      >
-                        공식 홈페이지
-                        <ExternalLink size={11} />
-                      </a>
-                    )}
+                    <a
+                      href={c.detailUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 rounded-lg border border-white/[0.08] px-3 py-1.5 text-[12px] text-foreground-muted transition-colors hover:border-white/[0.16] hover:text-foreground"
+                    >
+                      {c.source === 'linkareer' ? '링커리어 상세' : 'Wevity 상세'}
+                      <ExternalLink size={11} />
+                    </a>
                   </div>
                 </article>
               )
