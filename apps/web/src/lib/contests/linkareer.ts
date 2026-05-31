@@ -76,9 +76,7 @@ async function fetchPage(page: number): Promise<Contest[]> {
     const category = classifyCategory(title)
 
     const thumbnailUrl =
-      $(el).find(`img[alt="${title}"]`).attr('src') ??
-      $(el).find('img[src*="api.linkareer.com"]').attr('src') ??
-      null
+      $(el).find('img.activity-image').attr('src') ?? null
 
     contests.push({
       id: `linkareer-${activityId}`,
