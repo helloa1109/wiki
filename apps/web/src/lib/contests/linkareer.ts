@@ -94,6 +94,69 @@ async function fetchPage(page: number): Promise<Contest[]> {
   return contests
 }
 
+export interface LinkareerDetail {
+  title: string
+  thumbnail: string | null
+  organizer: string | null
+  target: string | null
+  prize: string | null
+  startDate: string | null
+  endDate: string | null
+  homepage: string | null
+  benefits: string | null
+  field: string | null
+  sourceUrl: string
+}
+
+export async function fetchLinkareerDetail(activityId: string): Promise<LinkareerDetail | null> {
+  const url = `${LINKAREER_BASE}/activity/${activityId}`
+  try {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': USER_AGENT },
+      next: { revalidate: 3600 },
+    })
+    if (!res.ok) return null
+
+    const html = await res.text()
+    const $ = cheerio.load(html)
+
+    const title = $('h1').first().text().trim()
+    const thumbnail = $('meta[property="og:image"]').attr('content') ?? null
+
+    const organizer =
+      $('p.organization-name, a.organization-name').first().text().trim() || null
+
+    const fields: Record<string, string> = {}
+    $('dl').each((_, dl) => {
+      const label = $(dl).find('dt').text().trim()
+      const value = $(dl).find('dd').text().replace(/\s+/g, ' ').trim()
+      if (label) fields[label] = value
+    })
+
+    const startDate =
+      $('span.start-at').next('span').text().trim() || null
+    const endDate =
+      $('span.end-at').next('span').text().trim() || null
+
+    return {
+      title,
+      thumbnail,
+      organizer,
+      target: fields['참여대상'] ?? null,
+      prize: fields['시상규모'] ?? null,
+      startDate,
+      endDate,
+      homepage: fields['홈페이지'] ?? null,
+      benefits: fields['활동혜택'] ?? null,
+      field: fields['공모분야'] ?? null,
+      sourceUrl: url,
+    }
+  } catch (err) {
+    console.error(`[linkareer] detail fetch error for ${activityId}:`, err)
+    return null
+  }
+}
+
 export async function fetchLinkareerContests(options?: { maxPages?: number }): Promise<Contest[]> {
   const maxPages = options?.maxPages ?? 2
   const results: Contest[] = []

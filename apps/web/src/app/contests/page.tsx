@@ -198,9 +198,17 @@ export default async function ContestsPage({
                       )}
                     </div>
 
-                    <h2 className="mb-1 text-[15px] font-semibold leading-snug text-foreground line-clamp-2">
-                      {c.title}
-                    </h2>
+                    {c.source === 'linkareer' ? (
+                      <Link href={`/contests/${c.id}`} className="mb-1">
+                        <h2 className="text-[15px] font-semibold leading-snug text-foreground line-clamp-2 hover:underline">
+                          {c.title}
+                        </h2>
+                      </Link>
+                    ) : (
+                      <h2 className="mb-1 text-[15px] font-semibold leading-snug text-foreground line-clamp-2">
+                        {c.title}
+                      </h2>
+                    )}
 
                     {c.organizer && (
                       <p className="mb-3 text-[13px] text-foreground-muted">{c.organizer}</p>
