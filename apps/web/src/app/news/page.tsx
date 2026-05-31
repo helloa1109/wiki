@@ -123,7 +123,7 @@ export default async function NewsPage({
           </div>
         ) : (
           <>
-            <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {news.map((item) => (
                 <article
                   key={item.id}
@@ -134,7 +134,7 @@ export default async function NewsPage({
                       <img
                         src={item.image_url}
                         alt={item.title}
-                        className="w-full h-44 object-cover"
+                        className="w-full h-40 object-cover"
                       />
                     </Link>
                   )}
@@ -168,7 +168,7 @@ export default async function NewsPage({
                     </Link>
 
                     {item.summary && (
-                      <p className="mb-4 text-[13px] leading-[1.7] text-foreground-muted line-clamp-3">
+                      <p className="mb-4 text-[13px] leading-[1.7] text-foreground-muted line-clamp-2">
                         {item.summary}
                       </p>
                     )}
