@@ -21,6 +21,16 @@ export async function fetchAllContests(options: FetchOptions = {}): Promise<Cont
     fetchers.push(fetchLinkareerContests({ maxPages: maxPagesPerSource ?? 2 }))
   }
 
-  const results = await Promise.allSettled(fetchers)
-  return results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
+  const settled = await Promise.allSettled(fetchers)
+  const arrays = settled.map((r) => (r.status === 'fulfilled' ? r.value : []))
+
+  // 각 소스는 이미 최신순 — 번갈아 합쳐서 최신글이 앞에 오도록 인터리빙
+  const maxLen = Math.max(...arrays.map((a) => a.length), 0)
+  const merged: Contest[] = []
+  for (let i = 0; i < maxLen; i++) {
+    for (const arr of arrays) {
+      if (i < arr.length) merged.push(arr[i]!)
+    }
+  }
+  return merged
 }
