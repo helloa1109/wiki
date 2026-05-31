@@ -170,66 +170,77 @@ export default async function ContestsPage({
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {contests.map((c: Contest) => {
                 const expired = isExpired(c.daysLeft)
+                const titleEl = c.source === 'linkareer' ? (
+                  <Link href={`/contests/${c.id}`}>
+                    <h2 className="text-[15px] font-semibold leading-snug text-foreground line-clamp-2 hover:underline">
+                      {c.title}
+                    </h2>
+                  </Link>
+                ) : (
+                  <h2 className="text-[15px] font-semibold leading-snug text-foreground line-clamp-2">
+                    {c.title}
+                  </h2>
+                )
+
                 return (
                   <article
                     key={c.id}
                     className={[
-                      'group flex flex-col rounded-2xl border p-5 transition-colors',
+                      'group flex flex-col overflow-hidden rounded-2xl border transition-colors',
                       expired
                         ? 'border-white/[0.04] opacity-50'
                         : 'border-white/[0.08] hover:border-white/[0.14]',
                     ].join(' ')}
                   >
-                    {/* 카테고리 배지 */}
-                    <div className="mb-3 flex items-center gap-2">
-                      <span
-                        className={[
-                          'rounded-full border px-2.5 py-0.5 text-[11px] font-medium',
-                          CATEGORY_COLORS[c.category] ?? CATEGORY_COLORS.etc,
-                        ].join(' ')}
-                      >
-                        {CATEGORIES.find((x) => x.key === c.category)?.label ?? '기타'}
-                      </span>
-                      {expired && (
-                        <span className="text-[11px] text-foreground-subtle">마감</span>
-                      )}
-                      {c.daysLeft !== null && !expired && (
-                        <span className="text-[11px] text-foreground-subtle">D-{c.daysLeft}</span>
-                      )}
-                    </div>
-
-                    {c.source === 'linkareer' ? (
-                      <Link href={`/contests/${c.id}`} className="mb-1">
-                        <h2 className="text-[15px] font-semibold leading-snug text-foreground line-clamp-2 hover:underline">
-                          {c.title}
-                        </h2>
-                      </Link>
-                    ) : (
-                      <h2 className="mb-1 text-[15px] font-semibold leading-snug text-foreground line-clamp-2">
-                        {c.title}
-                      </h2>
+                    {/* 썸네일 */}
+                    {c.thumbnailUrl && (
+                      <div className="aspect-[2/1] w-full overflow-hidden bg-white/[0.04]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={c.thumbnailUrl}
+                          alt={c.title}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
                     )}
 
-                    {c.organizer && (
-                      <p className="mb-3 text-[13px] text-foreground-muted">{c.organizer}</p>
-                    )}
+                    {/* 본문 */}
+                    <div className="flex flex-1 flex-col p-5">
+                      {/* 배지 */}
+                      <div className="mb-3 flex items-center gap-2">
+                        <span
+                          className={[
+                            'rounded-full border px-2.5 py-0.5 text-[11px] font-medium',
+                            CATEGORY_COLORS[c.category] ?? CATEGORY_COLORS.etc,
+                          ].join(' ')}
+                        >
+                          {CATEGORIES.find((x) => x.key === c.category)?.label ?? '기타'}
+                        </span>
+                        {expired && (
+                          <span className="text-[11px] text-foreground-subtle">마감</span>
+                        )}
+                        {c.daysLeft !== null && !expired && (
+                          <span className="text-[11px] text-foreground-subtle">D-{c.daysLeft}</span>
+                        )}
+                      </div>
 
-                    <div className="mt-auto space-y-1 text-[12px] text-foreground-subtle">
-                      {c.prize && <p>🏆 {c.prize}</p>}
-                      {c.target && <p>👤 {c.target}</p>}
-                    </div>
+                      {titleEl}
 
-                    {/* 링크 버튼 */}
-                    <div className="mt-4 flex gap-2">
-                      <a
-                        href={c.detailUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 rounded-lg border border-white/[0.08] px-3 py-1.5 text-[12px] text-foreground-muted transition-colors hover:border-white/[0.16] hover:text-foreground"
-                      >
-                        {c.source === 'linkareer' ? '링커리어 상세' : 'Wevity 상세'}
-                        <ExternalLink size={11} />
-                      </a>
+                      {c.organizer && (
+                        <p className="mt-1 text-[13px] text-foreground-muted">{c.organizer}</p>
+                      )}
+
+                      <div className="mt-auto pt-4">
+                        <a
+                          href={c.detailUrl}
+                          target={c.source === 'linkareer' ? undefined : '_blank'}
+                          rel={c.source === 'linkareer' ? undefined : 'noopener noreferrer'}
+                          className="inline-flex items-center gap-1 rounded-lg border border-white/[0.08] px-3 py-1.5 text-[12px] text-foreground-muted transition-colors hover:border-white/[0.16] hover:text-foreground"
+                        >
+                          {c.source === 'linkareer' ? '링커리어 상세' : 'Wevity 상세'}
+                          <ExternalLink size={11} />
+                        </a>
+                      </div>
                     </div>
                   </article>
                 )
